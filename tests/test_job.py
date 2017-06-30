@@ -57,8 +57,8 @@ async def test_job_pending(make_scheduler):
     assert 'pending' in repr(job)
 
 
+# Mangle a name for satisfy 'pending' not in repr check
 async def test_job_resume_after_p_e_nding(make_scheduler):
-    # Mangle a name for satisfy 'pending' not in repr check
     scheduler = make_scheduler(limit=1)
 
     async def coro1():
