@@ -19,11 +19,6 @@ class Job:
         if loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(2))
 
-    def _start(self):
-        assert not self._closed
-        self._task = self._loop.create_task(self._coro)
-        self._task.add_done_callback(self._done_callback)
-
     def __repr__(self):
         info = []
         if self._closed:
@@ -84,6 +79,12 @@ class Job:
             if self._source_traceback is not None:
                 context['source_traceback'] = self._source_traceback
             scheduler.call_exception_handler(context)
+
+    def _start(self):
+        if self._task is not None:
+            return  # already started
+        self._task = self._loop.create_task(self._coro)
+        self._task.add_done_callback(self._done_callback)
 
     def _done_callback(self, task):
         scheduler = self._scheduler

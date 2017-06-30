@@ -19,6 +19,9 @@ class Scheduler(Container):
         self._closed = False
 
     async def spawn(self, coro):
+        # The method is not a coroutine
+        # but let's keep it async for sake of future changes
+        # Migration from function to coroutine is a pain
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
         job = Job(coro, self, self._loop)
@@ -96,9 +99,7 @@ class Scheduler(Container):
         return self._exception_handler
 
     def _done(self, job, pending):
-        self._jobs.remove(job)
-        if pending:
-            self._pending.remove(job)
+        self._jobs.discard(job)
         if not self._pending:
             return
         if self._limit is None:

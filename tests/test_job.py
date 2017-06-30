@@ -5,11 +5,11 @@ async def test_job_spawned(scheduler):
     async def coro():
         pass
     job = await scheduler.spawn(coro())
-    assert 'closed' not in repr(job)
-    assert 'pending' not in repr(job)
     assert job.active
     assert not job.closed
     assert not job.pending
+    assert 'closed' not in repr(job)
+    assert 'pending' not in repr(job)
 
 
 async def test_job_awaited(scheduler):
@@ -18,11 +18,11 @@ async def test_job_awaited(scheduler):
     job = await scheduler.spawn(coro())
     await job.wait()
 
-    assert 'closed' in repr(job)
-    assert 'pending' not in repr(job)
     assert not job.active
     assert job.closed
     assert not job.pending
+    assert 'closed' in repr(job)
+    assert 'pending' not in repr(job)
 
 
 async def test_job_closed(scheduler):
@@ -31,11 +31,11 @@ async def test_job_closed(scheduler):
     job = await scheduler.spawn(coro())
     await job.close()
 
-    assert 'closed' in repr(job)
-    assert 'pending' not in repr(job)
     assert not job.active
     assert job.closed
     assert not job.pending
+    assert 'closed' in repr(job)
+    assert 'pending' not in repr(job)
 
 
 async def test_job_pending(make_scheduler):
@@ -50,14 +50,15 @@ async def test_job_pending(make_scheduler):
     await scheduler.spawn(coro1())
     job = await scheduler.spawn(coro2())
 
-    assert 'closed' not in repr(job)
-    assert 'pending' in repr(job)
     assert not job.active
     assert not job.closed
     assert job.pending
+    assert 'closed' not in repr(job)
+    assert 'pending' in repr(job)
 
 
-async def test_job_resume_after_pending(make_scheduler):
+async def test_job_resume_after_p_e_nding(make_scheduler):
+    # Mangle a name for satisfy 'pending' not in repr check
     scheduler = make_scheduler(limit=1)
 
     async def coro1():
@@ -71,8 +72,8 @@ async def test_job_resume_after_pending(make_scheduler):
 
     await job1.close()
 
-    assert 'closed' not in repr(job2)
-    assert 'pending' not in repr(job2)
     assert job2.active
     assert not job2.closed
     assert not job2.pending
+    assert 'closed' not in repr(job2)
+    assert 'pending' not in repr(job2)
