@@ -61,13 +61,16 @@ class Job:
             return
         self._closed = True
         if self._task is None:
-            return
+            # the task is closed immediately without actual execution
+            # it prevents a warning like
+            # RuntimeWarning: coroutine 'coro' was never awaited
+            self._start()
         if not self._task.done():
             self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
         try:
-            with async_timeout.timeout(timeout=self._scheduler._close_timeout,
+            with async_timeout.timeout(timeout=self._scheduler.close_timeout,
                                        loop=self._loop):
                 await self._task
         except asyncio.CancelledError:
