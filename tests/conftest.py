@@ -1,14 +1,14 @@
 import pytest
 
-from aiojobs._scheduler import _Scheduler
+from aiojobs._scheduler import Scheduler
 
 
-PARAMS = dict(close_timeout=1.0, concurrency=100, exception_handler=None)
+PARAMS = dict(close_timeout=1.0, limit=100, exception_handler=None)
 
 
 @pytest.fixture
 def scheduler(loop):
-    ret = _Scheduler(loop=loop, **PARAMS)
+    ret = Scheduler(loop=loop, **PARAMS)
     yield ret
     loop.run_until_complete(ret.close())
 
@@ -20,7 +20,7 @@ def make_scheduler(loop):
     def maker(**kwargs):
         params = PARAMS.copy()
         params.update(kwargs)
-        ret = _Scheduler(loop=loop, **params)
+        ret = Scheduler(loop=loop, **params)
         schedulers.append(ret)
         return ret
 

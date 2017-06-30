@@ -2,16 +2,16 @@ import asyncio
 from collections import deque
 from collections.abc import Container
 
-from ._job import _Job
+from ._job import Job
 
 
-class _Scheduler(Container):
-    def __init__(self, *, close_timeout, concurrency,
+class Scheduler(Container):
+    def __init__(self, *, close_timeout, limit,
                  exception_handler, loop):
         self._loop = loop
         self._jobs = set()
         self._close_timeout = close_timeout
-        self._concurrency = concurrency
+        self._limit = limit
         self._exception_handler = exception_handler
         self._failed_tasks = asyncio.Queue(loop=loop)
         self._failed_task = loop.create_task(self._wait_failed())
@@ -21,9 +21,9 @@ class _Scheduler(Container):
     async def spawn(self, coro):
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
-        job = _Job(coro, self, self._loop)
-        should_start = (self._concurrency is None or
-                        self.active_count < self._concurrency)
+        job = Job(coro, self, self._loop)
+        should_start = (self._limit is None or
+                        self.active_count < self._limit)
         self._jobs.add(job)
         if should_start:
             job._start()
@@ -69,8 +69,8 @@ class _Scheduler(Container):
         await self._failed_task
 
     @property
-    def concurrency(self):
-        return self._concurrency
+    def limit(self):
+        return self._limit
 
     @property
     def active_count(self):
@@ -101,10 +101,10 @@ class _Scheduler(Container):
             self._pending.remove(job)
         if not self._pending:
             return
-        if self._concurrency is None:
+        if self._limit is None:
             ntodo = len(self._pending)
         else:
-            ntodo = self._concurrency - self.active_count
+            ntodo = self._limit - self.active_count
         i = 0
         while i < ntodo:
             if not self._pending:

@@ -1,10 +1,11 @@
+import asyncio
 import traceback
 import sys
 
 import async_timeout
 
 
-class _Job:
+class Job:
     _source_traceback = None
     _closed = False
     _explicit_wait = False

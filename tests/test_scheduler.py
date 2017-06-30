@@ -178,17 +178,17 @@ async def test_timeout_on_closing(scheduler, loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-def test_concurrency(scheduler):
-    assert scheduler.concurrency == 100
-    scheduler.concurrency = 2
-    assert scheduler.concurrency == 2
+def test_limit(scheduler):
+    assert scheduler.limit == 100
+    scheduler.limit = 2
+    assert scheduler.limit == 2
 
 
 async def test_scheduler_councurrency_limit(scheduler, loop):
     async def coro(fut):
         await fut
 
-    scheduler.concurrency = 1
+    scheduler.limit = 1
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
@@ -233,7 +233,7 @@ async def test_resume_closed_task(scheduler, loop):
     async def coro(fut):
         await fut
 
-    scheduler.concurrency = 1
+    scheduler.limit = 1
     assert scheduler.active_count == 0
 
     fut1 = create_future(loop)
@@ -266,7 +266,7 @@ async def test_concurreny_disabled(scheduler, loop):
         fut1.set_result(None)
         await fut2
 
-    scheduler.concurrency = None
+    scheduler.limit = None
     job = await scheduler.spawn(coro())
     await fut1
     assert scheduler.active_count == 1
@@ -290,7 +290,7 @@ async def test_penging_property(scheduler, loop):
     async def coro(fut):
         await fut
 
-    scheduler.concurrency = 1
+    scheduler.limit = 1
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
@@ -309,7 +309,7 @@ async def test_active_property(scheduler, loop):
     async def coro(fut):
         await fut
 
-    scheduler.concurrency = 1
+    scheduler.limit = 1
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
