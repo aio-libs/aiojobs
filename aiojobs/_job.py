@@ -43,7 +43,7 @@ class Job:
         return not self.closed and not self.pending
 
     async def wait(self, timeout=None):
-        self._explicit_wait = True
+        self._explicit = True
         try:
             with async_timeout.timeout(timeout=timeout, loop=self._loop):
                 return await self._task
@@ -94,7 +94,7 @@ class Job:
         except asyncio.CancelledError:
             pass
         else:
-            if exc is not None and not self._explicit_wait:
+            if exc is not None and not self._explicit:
                 context = {'message': "Job processing failed",
                            'job': self,
                            'exception': exc}

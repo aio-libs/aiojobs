@@ -1,4 +1,7 @@
 import asyncio
+from unittest import mock
+
+import pytest
 
 
 async def test_job_spawned(scheduler):
@@ -77,3 +80,31 @@ async def test_job_resume_after_p_e_nding(make_scheduler):
     assert not job2.pending
     assert 'closed' not in repr(job2)
     assert 'pending' not in repr(job2)
+
+
+async def test_job_wait_result(make_scheduler):
+    handler = mock.Mock()
+    scheduler = make_scheduler(exception_handler=handler)
+
+    async def coro():
+        return 1
+
+    job = await scheduler.spawn(coro())
+    ret = await job.wait()
+    assert ret == 1
+    assert not handler.called
+
+
+async def test_job_wait_exception(make_scheduler):
+    handler = mock.Mock()
+    scheduler = make_scheduler(exception_handler=handler)
+    exc = RuntimeError()
+
+    async def coro():
+        raise exc
+
+    job = await scheduler.spawn(coro())
+    with pytest.raises(RuntimeError) as ctx:
+        await job.wait()
+    assert ctx.value is exc
+    assert not handler.called
