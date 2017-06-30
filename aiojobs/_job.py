@@ -30,15 +30,6 @@ class Job:
             info += ' '
         return '<Job {}coro=<{}>>'.format(info, self._coro)
 
-    async def wait(self, timeout=None):
-        self._explicit_wait = True
-        try:
-            with async_timeout.timeout(timeout=timeout, loop=self._loop):
-                return await self._task
-        except Exception as exc:
-            await self.close()
-            raise exc
-
     @property
     def closed(self):
         return self._closed
@@ -50,6 +41,15 @@ class Job:
     @property
     def active(self):
         return not self.closed and not self.pending
+
+    async def wait(self, timeout=None):
+        self._explicit_wait = True
+        try:
+            with async_timeout.timeout(timeout=timeout, loop=self._loop):
+                return await self._task
+        except Exception as exc:
+            await self.close()
+            raise exc
 
     async def close(self, timeout=None):
         if self._closed:
