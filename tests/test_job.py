@@ -108,3 +108,27 @@ async def test_job_wait_exception(make_scheduler):
         await job.wait()
     assert ctx.value is exc
     assert not handler.called
+
+
+async def test_job_cancel_dont_raise(make_scheduler):
+    handler = mock.Mock()
+    scheduler = make_scheduler(exception_handler=handler)
+    exc = RuntimeError()
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+    fut3 = asyncio.Future()
+
+    async def coro():
+        await fut1
+        fut2.set_result(None)
+        await fut3
+        raise exc
+
+    job = await scheduler.spawn(coro())
+    fut1.set_result(None)
+    await fut2
+    fut3.set_result(None)
+
+    await job.close()
+    handler.assert_called_with()
+
