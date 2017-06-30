@@ -56,7 +56,7 @@ class Job:
     def active(self):
         return not self.closed and not self.pending
 
-    async def close(self):
+    async def close(self, timeout=None):
         if self._closed:
             return
         self._closed = True
@@ -69,8 +69,10 @@ class Job:
             self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
+        if timeout is None:
+            timeout = self._scheduler.close_timeout
         try:
-            with async_timeout.timeout(timeout=self._scheduler.close_timeout,
+            with async_timeout.timeout(timeout=timeout,
                                        loop=self._loop):
                 await self._task
         except asyncio.CancelledError:

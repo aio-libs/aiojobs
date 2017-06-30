@@ -61,7 +61,7 @@ class Scheduler(Container):
         jobs = self._jobs
         if jobs:
             await asyncio.gather(
-                *[job.close() for job in jobs],
+                *[job.close(timeout=self._close_timeout) for job in jobs],
                 loop=self._loop, return_exceptions=True)
         self._pending.clear()
         self._jobs.clear()
