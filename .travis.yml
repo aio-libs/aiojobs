@@ -14,34 +14,34 @@ os:
 jobs:
   include:
     - stage test
-      python:
+    - python:
         - 3.5.3
         - 3.5
         - 3.6
         - 3.7-dev
         # - 'nightly'
-      env:
+    - env:
         matrix:
           - PYTHONASYNCIODEBUG=x
           - PYTHONASYNCIODEBUG=
-      install:
+    - install:
         - pip install -U pip wheel setuptools
         - pip install -r requirements/ci.txt
         - pip install codecov
-      script:
+    - script:
         - make cov
       after_success:
         - codecov
     - stage doc
-      install:
+    - install:
         - pip install -r requirements/doc.txt
-      script:
+    - script:
         - python setup.py check -rms
     - stage deploy
-      install:
+    - install:
         - pip install -U pip wheel setuptools
-      script: skip
-      deploy:
+    - script: skip
+    - deploy:
         provider: pypi
         user: andrew.svetlov
         password:
