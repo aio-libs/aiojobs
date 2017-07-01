@@ -1,0 +1,4 @@
+-r ci.txt
+-r doc.txt
+pytest-sugar
+-e .

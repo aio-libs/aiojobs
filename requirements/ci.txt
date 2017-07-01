@@ -1,5 +1,3 @@
 pytest-aiohttp
 pytest-cov
 flake8
-sphinx
--e .
