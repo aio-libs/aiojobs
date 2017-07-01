@@ -35,9 +35,13 @@ jobs:
   include:
     - stage: doc
       python: 3.6
+      install:
+        - pip install -r requirements/doc.txt
       script: python setup.py check -rms
 
     - stage: deploy
+      python: 3.6
+      install: skip
       deploy:
         provider: pypi
         user: andrew.svetlov
