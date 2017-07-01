@@ -14,6 +14,9 @@ async def test_job_spawned(scheduler):
     assert 'closed' not in repr(job)
     assert 'pending' not in repr(job)
 
+    assert repr(job).startswith('<Job')
+    assert repr(job).endswith('>')
+
 
 async def test_job_awaited(scheduler):
     async def coro():
@@ -42,7 +45,7 @@ async def test_job_closed(scheduler):
 
 
 async def test_job_pending(make_scheduler):
-    scheduler = make_scheduler(limit=1)
+    scheduler = await make_scheduler(limit=1)
 
     async def coro1():
         await asyncio.sleep(10)
@@ -62,7 +65,7 @@ async def test_job_pending(make_scheduler):
 
 # Mangle a name for satisfy 'pending' not in repr check
 async def test_job_resume_after_p_e_nding(make_scheduler):
-    scheduler = make_scheduler(limit=1)
+    scheduler = await make_scheduler(limit=1)
 
     async def coro1():
         await asyncio.sleep(10)
@@ -84,7 +87,7 @@ async def test_job_resume_after_p_e_nding(make_scheduler):
 
 async def test_job_wait_result(make_scheduler):
     handler = mock.Mock()
-    scheduler = make_scheduler(exception_handler=handler)
+    scheduler = await make_scheduler(exception_handler=handler)
 
     async def coro():
         return 1
@@ -97,7 +100,7 @@ async def test_job_wait_result(make_scheduler):
 
 async def test_job_wait_exception(make_scheduler):
     handler = mock.Mock()
-    scheduler = make_scheduler(exception_handler=handler)
+    scheduler = await make_scheduler(exception_handler=handler)
     exc = RuntimeError()
 
     async def coro():
@@ -112,7 +115,7 @@ async def test_job_wait_exception(make_scheduler):
 
 async def test_job_close_exception(make_scheduler):
     handler = mock.Mock()
-    scheduler = make_scheduler(exception_handler=handler)
+    scheduler = await make_scheduler(exception_handler=handler)
     exc = RuntimeError()
     fut = asyncio.Future()
 
@@ -130,7 +133,8 @@ async def test_job_close_exception(make_scheduler):
 
 async def test_job_close_timeout(make_scheduler):
     handler = mock.Mock()
-    scheduler = make_scheduler(exception_handler=handler, close_timeout=0.01)
+    scheduler = await make_scheduler(exception_handler=handler,
+                                     close_timeout=0.01)
 
     fut1 = asyncio.Future()
     fut2 = asyncio.Future()

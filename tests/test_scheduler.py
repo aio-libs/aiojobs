@@ -35,7 +35,7 @@ async def test_run_retval(scheduler, loop):
 
 async def test_exception_in_explicit_waiting(make_scheduler, loop):
     exc_handler = mock.Mock()
-    scheduler = make_scheduler(exception_handler=exc_handler)
+    scheduler = await make_scheduler(exception_handler=exc_handler)
 
     async def coro():
         await asyncio.sleep(0, loop=loop)
@@ -54,15 +54,15 @@ async def test_exception_in_explicit_waiting(make_scheduler, loop):
     assert not exc_handler.called
 
 
-async def test_exception_non_waited_job(scheduler, loop):
+async def test_exception_non_waited_job(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
 
     async def coro():
         await asyncio.sleep(0, loop=loop)
         raise exc
 
-    exc_handler = mock.Mock()
-    scheduler.set_exception_handler(exc_handler)
     await scheduler.spawn(coro())
     assert len(scheduler) == 1
 
@@ -78,19 +78,11 @@ async def test_exception_non_waited_job(scheduler, loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-def test_close_timeout(scheduler):
-    assert scheduler.close_timeout == 0.1
-    scheduler.close_timeout = 1
-    assert scheduler.close_timeout == 1
-
-
-async def test_job_repr(scheduler, loop):
-    async def coro():
-        return
-
-    job = await scheduler.spawn(coro())
-    assert repr(job).startswith('<Job')
-    assert repr(job).endswith('>')
+async def test_close_timeout(make_scheduler):
+    s1 = await make_scheduler()
+    assert s1.close_timeout == 0.1
+    s2 = await make_scheduler(close_timeout=1)
+    assert s2.close_timeout == 1
 
 
 async def test_scheduler_repr(scheduler, loop):
@@ -121,15 +113,19 @@ async def test_close_jobs(scheduler, loop):
     assert scheduler.pending_count == 0
 
 
-def test_exception_handler_api(scheduler):
-    assert scheduler.get_exception_handler() is None
+async def test_exception_handler_api(make_scheduler):
+    s1 = await make_scheduler()
+    assert s1.exception_handler is None
+
     handler = mock.Mock()
-    scheduler.set_exception_handler(handler)
-    assert scheduler.get_exception_handler() is handler
+    s2 = await make_scheduler(exception_handler=handler)
+    assert s2.exception_handler is handler
+
     with pytest.raises(TypeError):
-        scheduler.set_exception_handler(1)
-    scheduler.set_exception_handler(None)
-    assert scheduler.get_exception_handler() is None
+        await make_scheduler(exception_handler=1)
+
+    s3 = await make_scheduler(exception_handler=None)
+    assert s3.exception_handler is None
 
 
 def test_exception_handler_default(scheduler, loop):
@@ -151,10 +147,12 @@ async def test_wait_with_timeout(scheduler, loop):
     assert len(scheduler) == 0
 
 
-async def test_timeout_on_closing(scheduler, loop):
-
-    fut1 = create_future(loop)
-    fut2 = create_future(loop)
+async def test_timeout_on_closing(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler,
+                                     close_timeout=0.01)
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
 
     async def coro():
         try:
@@ -162,17 +160,36 @@ async def test_timeout_on_closing(scheduler, loop):
         except asyncio.CancelledError:
             await fut2
 
-    exc_handler = mock.Mock()
-    scheduler.set_exception_handler(exc_handler)
-    scheduler.close_timeout = 0.01
     job = await scheduler.spawn(coro())
     await asyncio.sleep(0.001, loop=loop)
-    await job.close()
+    await scheduler.close()
     assert job.closed
     assert fut1.cancelled()
     expect = {'message': 'Job closing timed out',
               'job': job,
               'exception': mock.ANY}
+    if loop.get_debug():
+        expect['source_traceback'] = mock.ANY
+    exc_handler.assert_called_with(scheduler, expect)
+
+
+async def test_exception_on_closing(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler)
+    fut = asyncio.Future()
+    exc = RuntimeError()
+
+    async def coro():
+        fut.set_result(None)
+        raise exc
+
+    job = await scheduler.spawn(coro())
+    await fut
+    await scheduler.close()
+    assert job.closed
+    expect = {'message': 'Job processing failed',
+              'job': job,
+              'exception': exc}
     if loop.get_debug():
         expect['source_traceback'] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)

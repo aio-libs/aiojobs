@@ -1,6 +1,7 @@
 import pytest
 
 from aiojobs._scheduler import Scheduler
+from aiojobs import create_scheduler
 
 
 PARAMS = dict(close_timeout=1.0, limit=100, exception_handler=None)
@@ -17,10 +18,8 @@ def scheduler(loop):
 def make_scheduler(loop):
     schedulers = []
 
-    def maker(**kwargs):
-        params = PARAMS.copy()
-        params.update(kwargs)
-        ret = Scheduler(loop=loop, **params)
+    async def maker(**kwargs):
+        ret = await(create_scheduler(**kwargs))
         schedulers.append(ret)
         return ret
 
