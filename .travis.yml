@@ -17,7 +17,8 @@ env:
   matrix:
     - PYTHONASYNCIODEBUG=x
     - PYTHONASYNCIODEBUG=
-  - STAGE=test
+  global:
+    - STAGE=test
 
 
 install:
@@ -40,7 +41,8 @@ jobs:
         - STAGE=doc
       install:
         - pip install -r requirements/doc.txt
-      script: python setup.py check -rms
+      script: 
+        - python setup.py check -rms
 
       after_success: skip
 
