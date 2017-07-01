@@ -242,27 +242,27 @@ async def test_scheduler_councurrency_limit(make_scheduler):
     assert job2.closed
 
 
-async def test_resume_closed_task(scheduler, loop):
+async def test_resume_closed_task(make_scheduler):
+    scheduler = await make_scheduler(limit=1)
+
     async def coro(fut):
         await fut
 
-    scheduler.limit = 1
     assert scheduler.active_count == 0
 
-    fut1 = create_future(loop)
+    fut1 = asyncio.Future()
     job1 = await scheduler.spawn(coro(fut1))
 
     assert scheduler.active_count == 1
 
-    fut2 = create_future(loop)
+    fut2 = asyncio.Future()
     job2 = await scheduler.spawn(coro(fut2))
 
     assert scheduler.active_count == 1
 
     await job2.close()
     assert job2.closed
-    assert 'closed' in repr(job2)
-    assert 'pending' not in repr(job2)
+    assert not job2.pending
 
     fut1.set_result(None)
     await job1.wait()
@@ -271,15 +271,16 @@ async def test_resume_closed_task(scheduler, loop):
     assert len(scheduler) == 0
 
 
-async def test_concurreny_disabled(scheduler, loop):
-    fut1 = create_future(loop)
-    fut2 = create_future(loop)
+async def test_concurreny_disabled(make_scheduler):
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+
+    scheduler = await make_scheduler(limit=None)
 
     async def coro():
         fut1.set_result(None)
         await fut2
 
-    scheduler.limit = None
     job = await scheduler.spawn(coro())
     await fut1
     assert scheduler.active_count == 1
@@ -290,63 +291,14 @@ async def test_concurreny_disabled(scheduler, loop):
 
 
 async def test_run_after_close(scheduler, loop):
-    async def coro():
+    async def f():
         pass
 
     await scheduler.close()
 
+    coro = f()
     with pytest.raises(RuntimeError):
-        await scheduler.spawn(coro())
+        await scheduler.spawn(coro)
 
-
-async def test_penging_property(scheduler, loop):
-    async def coro(fut):
-        await fut
-
-    scheduler.limit = 1
-    assert scheduler.active_count == 0
-    assert scheduler.pending_count == 0
-
-    fut1 = create_future(loop)
-    job1 = await scheduler.spawn(coro(fut1))
-
-    assert not job1.pending
-
-    fut1 = create_future(loop)
-    job1 = await scheduler.spawn(coro(fut1))
-
-    assert job1.pending
-
-
-async def test_active_property(scheduler, loop):
-    async def coro(fut):
-        await fut
-
-    scheduler.limit = 1
-    assert scheduler.active_count == 0
-    assert scheduler.pending_count == 0
-
-    fut1 = create_future(loop)
-    job1 = await scheduler.spawn(coro(fut1))
-
-    assert job1.active
-
-    fut1 = create_future(loop)
-    job1 = await scheduler.spawn(coro(fut1))
-
-    assert not job1.active
-
-
-async def test_task_cancelling(loop):
-    async def f():
-        print('1')
-        try:
-            print('2')
-            await asyncio.sleep(0, loop=loop)
-        except asyncio.CancelledError:
-            print('Cancelled')
-
-    task = loop.create_task(f())
-    await asyncio.sleep(0, loop=loop)
-    task.cancel()
-    await asyncio.sleep(1, loop=loop)
+    with pytest.warns(RuntimeWarning):
+        del coro
