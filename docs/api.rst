@@ -17,7 +17,7 @@ API
      message is logged by :meth:`Scheduler.call_exception_handler`.
 
    * *exception_handler* is a callable with
-     ``exception_handler(scheduler, context)`` signature to log
+     ``handler(scheduler, context)`` signature to log
      unhandled exceptions from jobs (see
      :meth:`Scheduler.call_exception_handler` for documentation about
      *context* and default implementaion).
