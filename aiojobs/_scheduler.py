@@ -105,10 +105,9 @@ class Scheduler(Container):
         self._jobs.discard(job)
         if not self._pending:
             return
-        if self._limit is None:
-            ntodo = len(self._pending)
-        else:
-            ntodo = self._limit - self.active_count
+        # No pending jobs when limit is None
+        # Safe to substract.
+        ntodo = self._limit - self.active_count
         i = 0
         while i < ntodo:
             if not self._pending:
