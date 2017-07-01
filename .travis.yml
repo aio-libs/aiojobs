@@ -17,6 +17,7 @@ env:
   matrix:
     - PYTHONASYNCIODEBUG=x
     - PYTHONASYNCIODEBUG=
+  - STAGE=test
 
 
 install:
@@ -35,12 +36,16 @@ jobs:
   include:
     - stage: doc
       python: 3.6
+      env:
+        - STAGE=doc
       install:
         - pip install -r requirements/doc.txt
       script: python setup.py check -rms
 
     - stage: deploy
       python: 3.6
+      env:
+        - STAGE=deploy
       install: skip
       deploy:
         provider: pypi
