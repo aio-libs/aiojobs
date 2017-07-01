@@ -20,7 +20,7 @@ setup(
     author="Andrew Svetlov",
     author_email="andrew.svetlov@gmail.com",
     long_description=long_description,
-    description="Jobs scheduler for managing background tasks",
+    description="Jobs scheduler for managing asyncio background tasks",
     license="Apache 2",
     classifiers=[
         'Development Status :: 4 - Beta',
