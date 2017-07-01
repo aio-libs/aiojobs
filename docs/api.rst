@@ -10,17 +10,17 @@ API
 
    Create a new :class:`Scheduler`.
 
-   *timeout* is a timeout for job closing, ``0.1`` by default.
+   * *timeout* is a timeout for job closing, ``0.1`` by default.
 
-   *limit* is a concurrrency limit for jobs spawned by scheduler,
-   ``100` by default. If spawned job's closing time takes more than timeout a
-   message is logged by :meth:`Scheduler.call_exception_handler`.
+   * *limit* is a for jobs spawned by scheduler, ``100`` by
+     default. If spawned job's closing time takes more than timeout a
+     message is logged by :meth:`Scheduler.call_exception_handler`.
 
-   *exception_handler* is a callable with
-   ``exception_handler(scheduler, context)`` signature to log
-   unhandled exceptions from jobs (see
-   :meth:`Scheduler.call_exception_handler` for documentation about
-   *context* and default implementaion).
+   * *exception_handler* is a callable with
+     ``exception_handler(scheduler, context)`` signature to log
+     unhandled exceptions from jobs (see
+     :meth:`Scheduler.call_exception_handler` for documentation about
+     *context* and default implementaion).
 
 
 
