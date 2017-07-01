@@ -195,55 +195,51 @@ async def test_exception_on_closing(make_scheduler, loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-def test_limit(scheduler):
-    assert scheduler.limit == 100
-    scheduler.limit = 2
-    assert scheduler.limit == 2
+async def test_limit(make_scheduler):
+    s1 = await make_scheduler()
+    assert s1.limit == 100
+    s2 = await make_scheduler(limit=2)
+    assert s2.limit == 2
 
 
-async def test_scheduler_councurrency_limit(scheduler, loop):
+async def test_scheduler_councurrency_limit(make_scheduler):
+    scheduler = await make_scheduler(limit=1)
+
     async def coro(fut):
         await fut
 
-    scheduler.limit = 1
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
-    fut1 = create_future(loop)
+    fut1 = asyncio.Future()
     job1 = await scheduler.spawn(coro(fut1))
 
     assert scheduler.active_count == 1
     assert scheduler.pending_count == 0
-    assert 'pending' not in repr(job1)
-    assert 'closed' not in repr(job1)
+    assert job1.active
 
-    fut2 = create_future(loop)
+    fut2 = asyncio.Future()
     job2 = await scheduler.spawn(coro(fut2))
 
     assert scheduler.active_count == 1
     assert scheduler.pending_count == 1
-    assert 'pending' in repr(job2)
-    assert 'closed' not in repr(job2)
+    assert job2.pending
 
     fut1.set_result(None)
     await job1.wait()
 
     assert scheduler.active_count == 1
     assert scheduler.pending_count == 0
-    assert 'pending' not in repr(job1)
-    assert 'closed' in repr(job1)
-    assert 'pending' not in repr(job2)
-    assert 'closed' not in repr(job2)
+    assert job1.closed
+    assert job2.active
 
     fut2.set_result(None)
     await job2.wait()
 
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
-    assert 'pending' not in repr(job1)
-    assert 'closed' in repr(job1)
-    assert 'pending' not in repr(job2)
-    assert 'closed' in repr(job2)
+    assert job1.closed
+    assert job2.closed
 
 
 async def test_resume_closed_task(scheduler, loop):
