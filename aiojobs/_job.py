@@ -15,6 +15,7 @@ class Job:
         self._loop = loop
         self._coro = coro
         self._scheduler = scheduler
+        self._started = loop.create_future()
 
         if loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(2))
@@ -31,22 +32,24 @@ class Job:
         return '<Job {}coro=<{}>>'.format(info, self._coro)
 
     @property
-    def closed(self):
-        return self._closed
+    def active(self):
+        return not self.closed and not self.pending
 
     @property
     def pending(self):
         return self._task is None and not self.closed
 
     @property
-    def active(self):
-        return not self.closed and not self.pending
+    def closed(self):
+        return self._closed
 
-    async def wait(self, timeout=None):
+    async def wait(self, *, timeout=None):
         self._explicit = True
         scheduler = self._scheduler
         try:
             with async_timeout.timeout(timeout=timeout, loop=self._loop):
+                # TODO: add a test for waiting for a pending coro
+                await self._started
                 return await self._task
         except Exception as exc:
             await self._close(scheduler.close_timeout)
@@ -95,6 +98,7 @@ class Job:
         assert self._task is None
         self._task = self._loop.create_task(self._coro)
         self._task.add_done_callback(self._done_callback)
+        self._started.set_result(None)x
 
     def _done_callback(self, task):
         scheduler = self._scheduler

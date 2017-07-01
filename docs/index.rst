@@ -11,6 +11,7 @@ Welcome to aiojobs's documentation!
    :caption: Contents:
 
    intro
+   api
 
 Indices and tables
 ==================

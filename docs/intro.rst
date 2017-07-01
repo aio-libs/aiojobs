@@ -97,11 +97,17 @@ All spawned jobs are stopped and closed by :meth:`Scheduler.close()`.
 The call has a timeout for waiting for close:
 :attr:`Scheduler.close_timeout` (``0.1`` second by default).
 
-If job's closing time takes more than timeout a message is logged by
+If spawned job's closing time takes more than timeout a message is logged by
 :meth:`Scheduler.call_exception_handler`.
 
 Close timeout could be overridden by :func:`create_scheduler`: ``await
 aiojobs.create_scheduler(close_timeout=10)``
+
+
+Introspection
+--------------
+
+A scheduler is container for jobs.
 
 
 Atomicity
