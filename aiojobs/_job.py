@@ -87,8 +87,7 @@ class Job:
             self._report_exception(exc)
 
     def _start(self):
-        if self._task is not None:
-            return  # already started
+        assert self._task is None
         self._task = self._loop.create_task(self._coro)
         self._task.add_done_callback(self._done_callback)
 

@@ -78,6 +78,32 @@ async def test_exception_non_waited_job(make_scheduler, loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
+async def test_exception_on_close(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler)
+    exc = RuntimeError()
+
+    fut = asyncio.Future()
+
+    async def coro():
+        fut.set_result(None)
+        raise exc
+
+    await scheduler.spawn(coro())
+    assert len(scheduler) == 1
+
+    await scheduler.close()
+
+    assert len(scheduler) == 0
+
+    expect = {'exception': exc,
+              'job': mock.ANY,
+              'message': 'Job processing failed'}
+    if loop.get_debug():
+        expect['source_traceback'] = mock.ANY
+    exc_handler.assert_called_with(scheduler, expect)
+
+
 async def test_close_timeout(make_scheduler):
     s1 = await make_scheduler()
     assert s1.close_timeout == 0.1
