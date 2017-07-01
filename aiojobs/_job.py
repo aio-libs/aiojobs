@@ -94,7 +94,7 @@ class Job:
 
     def _done_callback(self, task):
         scheduler = self._scheduler
-        scheduler._done(self, False)
+        scheduler._done(self)
         try:
             exc = task.exception()
         except asyncio.CancelledError:

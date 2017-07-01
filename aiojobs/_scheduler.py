@@ -63,11 +63,13 @@ class Scheduler(Container):
 
         jobs = self._jobs
         if jobs:
+            # cleanup pending queue
+            # all job will be started on closing
+            self._pending.clear()
             await asyncio.gather(
                 *[job.close(timeout=self._close_timeout) for job in jobs],
                 loop=self._loop, return_exceptions=True)
-        self._pending.clear()
-        self._jobs.clear()
+            self._jobs.clear()
         self._failed_tasks.put_nowait(None)
         await self._failed_task
 
@@ -98,7 +100,7 @@ class Scheduler(Container):
     def exception_handler(self):
         return self._exception_handler
 
-    def _done(self, job, pending):
+    def _done(self, job):
         self._jobs.discard(job)
         if not self._pending:
             return
