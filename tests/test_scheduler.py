@@ -168,7 +168,7 @@ async def test_wait_with_timeout(scheduler, loop):
 
     job = await scheduler.spawn(coro())
     with pytest.raises(asyncio.TimeoutError):
-        await job.wait(0.01)
+        await job.wait(timeout=0.01)
     assert job.closed
     assert len(scheduler) == 0
 

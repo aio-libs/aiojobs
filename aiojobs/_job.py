@@ -98,7 +98,7 @@ class Job:
         assert self._task is None
         self._task = self._loop.create_task(self._coro)
         self._task.add_done_callback(self._done_callback)
-        self._started.set_result(None)x
+        self._started.set_result(None)
 
     def _done_callback(self, task):
         scheduler = self._scheduler
