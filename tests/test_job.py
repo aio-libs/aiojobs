@@ -110,25 +110,41 @@ async def test_job_wait_exception(make_scheduler):
     assert not handler.called
 
 
-async def test_job_cancel_dont_raise(make_scheduler):
+async def test_job_close_exception(make_scheduler):
     handler = mock.Mock()
     scheduler = make_scheduler(exception_handler=handler)
     exc = RuntimeError()
-    fut1 = asyncio.Future()
-    fut2 = asyncio.Future()
-    fut3 = asyncio.Future()
+    fut = asyncio.Future()
 
     async def coro():
-        await fut1
-        fut2.set_result(None)
-        await fut3
+        fut.set_result(None)
         raise exc
 
     job = await scheduler.spawn(coro())
-    fut1.set_result(None)
-    await fut2
-    fut3.set_result(None)
+    await fut
 
-    await job.close()
-    handler.assert_called_with()
+    with pytest.raises(RuntimeError):
+        await job.close()
+    assert not handler.called
 
+
+async def test_job_close_timeout(make_scheduler):
+    handler = mock.Mock()
+    scheduler = make_scheduler(exception_handler=handler, close_timeout=0.01)
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+
+    async def coro():
+        fut1.set_result(None)
+        try:
+            await asyncio.sleep(10)
+        except asyncio.CancelledError:
+            await fut2
+
+    job = await scheduler.spawn(coro())
+    await fut1
+
+    with pytest.raises(asyncio.TimeoutError):
+        await job.close()
+    assert not handler.called

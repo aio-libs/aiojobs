@@ -8,7 +8,7 @@ import async_timeout
 class Job:
     _source_traceback = None
     _closed = False
-    _explicit_wait = False
+    _explicit = False
     _task = None
 
     def __init__(self, coro, scheduler, loop):
@@ -51,7 +51,7 @@ class Job:
             await self.close()
             raise exc
 
-    async def close(self, timeout=None):
+    async def close(self, *, timeout=None, _explicit=True):
         if self._closed:
             return
         self._closed = True
@@ -73,12 +73,18 @@ class Job:
         except asyncio.CancelledError:
             pass
         except asyncio.TimeoutError as exc:
+            if _explicit:
+                raise
             context = {'message': "Job closing timed out",
                        'job': self,
                        'exception': exc}
             if self._source_traceback is not None:
                 context['source_traceback'] = self._source_traceback
             scheduler.call_exception_handler(context)
+        except Exception as exc:
+            if _explicit:
+                raise
+            self._report_exception(exc)
 
     def _start(self):
         if self._task is not None:
@@ -95,12 +101,15 @@ class Job:
             pass
         else:
             if exc is not None and not self._explicit:
-                context = {'message': "Job processing failed",
-                           'job': self,
-                           'exception': exc}
-                if self._source_traceback is not None:
-                    context['source_traceback'] = self._source_traceback
-                scheduler.call_exception_handler(context)
+                self._report_exception(exc)
                 scheduler._failed_tasks.put_nowait(task)
-        self._runner = None  # drop backref
+        self._scheduler = None  # drop backref
         self._closed = True
+
+    def _report_exception(self, exc):
+        context = {'message': "Job processing failed",
+                   'job': self,
+                   'exception': exc}
+        if self._source_traceback is not None:
+            context['source_traceback'] = self._source_traceback
+        self._scheduler.call_exception_handler(context)
