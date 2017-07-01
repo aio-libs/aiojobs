@@ -13,7 +13,7 @@ os:
 
 jobs:
   include:
-    - stage test
+    - stage: test
     - python:
         - 3.5.3
         - 3.5
@@ -32,12 +32,12 @@ jobs:
         - make cov
       after_success:
         - codecov
-    - stage doc
+    - stage: doc
     - install:
         - pip install -r requirements/doc.txt
     - script:
         - python setup.py check -rms
-    - stage deploy
+    - stage: deploy
     - install:
         - pip install -U pip wheel setuptools
     - script: skip
