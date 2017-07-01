@@ -17,8 +17,6 @@ env:
   matrix:
     - PYTHONASYNCIODEBUG=x
     - PYTHONASYNCIODEBUG=
-  global:
-    - STAGE=test
 
 
 install:
