@@ -1,47 +1,44 @@
+sudo: false
 language: python
 
 
 python:
+  - 3.5.3
+  - 3.5
   - 3.6
+  - 3.7-dev
+  # - 'nightly'
+
 
 os:
   - linux
 
+env:
+  matrix:
+    - PYTHONASYNCIODEBUG=x
+    - PYTHONASYNCIODEBUG=
 
 
+install:
+  - pip install -U pip wheel setuptools
+  - pip install -r requirements/ci.txt
+  - pip install codecov
+
+script:
+  - make cov
+
+after_success:
+  - codecov
 
 
 jobs:
   include:
-    - stage: test
-    - python:
-        - 3.5.3
-        - 3.5
-        - 3.6
-        - 3.7-dev
-        # - 'nightly'
-    - env:
-        matrix:
-          - PYTHONASYNCIODEBUG=x
-          - PYTHONASYNCIODEBUG=
-    - install:
-        - pip install -U pip wheel setuptools
-        - pip install -r requirements/ci.txt
-        - pip install codecov
-    - script:
-        - make cov
-      after_success:
-        - codecov
     - stage: doc
-    - install:
-        - pip install -r requirements/doc.txt
-    - script:
-        - python setup.py check -rms
+      python: 3.6
+      script: python setup.py check -rms
+
     - stage: deploy
-    - install:
-        - pip install -U pip wheel setuptools
-    - script: skip
-    - deploy:
+      deploy:
         provider: pypi
         user: andrew.svetlov
         password:
@@ -49,4 +46,5 @@ jobs:
         distributions: "sdist bdist_wheel"
         on:
           tags: true
+          all_branches: true
           python: 3.6
