@@ -42,7 +42,7 @@ jobs:
       script: 
         - python setup.py check -rms
 
-      after_success: skip
+      after_success: true  # do nothing
 
     - stage: deploy
       python: 3.6
@@ -50,12 +50,12 @@ jobs:
         - STAGE=deploy
       install: skip
       script: skip
-      after_success: skip
+      after_success: true  # do nothing
       deploy:
         provider: pypi
         user: andrew.svetlov
         password:
-          secure: ZQKbdPT9BlNqP5CTbWRQyeyig7Bpf7wsnYVQIQPOZc9Ec74A+dsbagstR1sPkAO+d+5PN0pZMovvmU7OQhSVPAnJ74nsN90/fL4ux3kqYecMbevv0rJg20hMXSSkwMEIpjUsMdMjJvZAcaKytGWmKL0qAlOJHhixd1pBbWyuIUE=
+          secure: "Ky80qFhoWbXoQemAFkX2Kiavozka2bS128t4dbgd5ZL6MpR0d1M9QWf3cpl9ijbztIvROjqfMS4+YFrtHRK5GyQt9ooD1VK/f1J3UGSOyqMYfR6fszCWpdhhLswQaV2G6M72/IYVY5wkVNDX7LW5X0HcPkiODu9Zqjo1L6ObKCd+SGnNEYXvKuVX4H4wkdbXb95q0SwWIjiqHIM2+bYI5mM9MOcfnnSuWDGFr/7EFgGm83v1z8QNWEVJXcFCy0KyKO5hHlpWHQFIAwRXqeW0Aoyw0uRprwKKQVTrAIT7r/kn0adyDgpoyU8rV1YMboQSMhgyQKIWA91iVHKeGWsLVgT/JWlNPHFv/MBlSDMoRbtvU3CyJbETYwJEUmd6vSbj38GdYb88GxulUYZnavGUcmmS4bk8jjx/DOA4b5RpMQ7ElAonzr2DRJKStWSaAaRVmjSnXY9ccYZpqqrqH6bNxK5O4ogwDsHgr8azG5LslwWJu3qIOg79aZI2NiEpLC8KjTIgH8cixGjrtkfOrSH/JRzkqJtI5wkxfAnRwQGvUPiPMjs6OkAi0f8PdVKvq30bl4F2OdhSXgORqmHRoShsiDFWIEn42NS//v6809cxRdMy8SMHuuRzl8Axf0NRhSfzAZuo9cKrrwGwECv5cV2H69nlX3RoV/Iey2O2ESwtiXc="
         distributions: "sdist bdist_wheel"
         on:
           tags: true
