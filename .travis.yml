@@ -47,15 +47,13 @@ jobs:
       python: 3.5
       env:
         - STAGE=deploy
-      install: skip
-      script: skip
+        - secure: "jzSRWWVoShw4pjEeIKdq4YR7ZsJX4oJEHYR2z1lYUjcxXceRZdEFW1s3flCt0IENwNmMAmRDqM0eL0qV0qIkTPuYEJl3qD8gvkWboVR31xWnDl5nQsaBIdSNeKVLW9u0CfdrWx4XhpUny+Jfvd+WYkK1nU0blOe/FEG9GYhr0GUHbSXzaiX3oUBUuSCjucTo6m4P7tWVU463ReLMA6IPIXLeCZI6PGJQtInF8BLD7vbtV49cZtfBMsz85NbwYIf+BKO6DMhYCt33tC5HtC9EBRlq4+jJNIaCRI8ptNN4l2E48KQa1QDt0ymcbDLAW33s88PqO14UcVPAJM/7II2uuqUlWqbYEkaysy7JzWBVz6SjvEQculaXzphq+xwxv3Cb2uC+PZs7biQzeRjn7mKgquSxD3HrQxRN35SFg5esvq2CzmpHUhc8YHxsHZN5js/wUY4djruneOR6BFVLKOmiCRo2yo7qzvhLglk0BGF6DmYpEHsPiXz0yILl3fB6fzmeRztjprM/68h9CUm8NvlEsWRmI+0WsTaJQ9IqkoIeC4B/4L63+1m9VZNF/JkUDQyFTF2h3gPwOTKshvzArugmjA35ZvlepMD6fSJca0+3ad+On+If9VXLH+sBASTBeAG+4Vxk7VOqftXdYZMXYaRALUtVkTgpViiTHmcY7juqIXI="
+      install:
+        - pip install -r requirements/deploy.txt
+      script:
+        - if [ ! -z $TRAVIS_TAG ];then
+              python setup.py sdist;
+              python setup.py bdist_wheel;
+              twine upload dist/* --username andrew.svetlov --password $PYPI_PASSWD;
+          fi
       after_success: true  # do nothing
-      deploy:
-        provider: pypi
-        user: andrew.svetlov
-        password:
-          secure: "Ky80qFhoWbXoQemAFkX2Kiavozka2bS128t4dbgd5ZL6MpR0d1M9QWf3cpl9ijbztIvROjqfMS4+YFrtHRK5GyQt9ooD1VK/f1J3UGSOyqMYfR6fszCWpdhhLswQaV2G6M72/IYVY5wkVNDX7LW5X0HcPkiODu9Zqjo1L6ObKCd+SGnNEYXvKuVX4H4wkdbXb95q0SwWIjiqHIM2+bYI5mM9MOcfnnSuWDGFr/7EFgGm83v1z8QNWEVJXcFCy0KyKO5hHlpWHQFIAwRXqeW0Aoyw0uRprwKKQVTrAIT7r/kn0adyDgpoyU8rV1YMboQSMhgyQKIWA91iVHKeGWsLVgT/JWlNPHFv/MBlSDMoRbtvU3CyJbETYwJEUmd6vSbj38GdYb88GxulUYZnavGUcmmS4bk8jjx/DOA4b5RpMQ7ElAonzr2DRJKStWSaAaRVmjSnXY9ccYZpqqrqH6bNxK5O4ogwDsHgr8azG5LslwWJu3qIOg79aZI2NiEpLC8KjTIgH8cixGjrtkfOrSH/JRzkqJtI5wkxfAnRwQGvUPiPMjs6OkAi0f8PdVKvq30bl4F2OdhSXgORqmHRoShsiDFWIEn42NS//v6809cxRdMy8SMHuuRzl8Axf0NRhSfzAZuo9cKrrwGwECv5cV2H69nlX3RoV/Iey2O2ESwtiXc="
-        distributions: "sdist bdist_wheel"
-        on:
-          tags: true
-          all_branches: true
