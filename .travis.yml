@@ -34,7 +34,7 @@ after_success:
 jobs:
   include:
     - stage: doc
-      python: 3.6
+      python: 3.5
       env:
         - STAGE=doc
       install:
@@ -45,7 +45,7 @@ jobs:
       after_success: true  # do nothing
 
     - stage: deploy
-      python: 3.6
+      python: 3.5
       env:
         - STAGE=deploy
       install: skip
@@ -60,4 +60,3 @@ jobs:
         on:
           tags: true
           all_branches: true
-          python: 3.6
