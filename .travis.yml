@@ -42,11 +42,15 @@ jobs:
         - pip install -r requirements/doc.txt
       script: python setup.py check -rms
 
+      after_success: skip
+
     - stage: deploy
       python: 3.6
       env:
         - STAGE=deploy
       install: skip
+      script: skip
+      after_success: skip
       deploy:
         provider: pypi
         user: andrew.svetlov
