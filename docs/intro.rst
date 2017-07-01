@@ -108,3 +108,19 @@ Atomicity
 ---------
 
 The library has no guarantee for job execution starting.
+
+The problem is::
+
+   task = loop.create_task(coro())
+   task.cancel()
+
+cancels a task immidiatelly, a code from ``coro()`` has no chance to
+be executed.
+
+Adding a context switch like ``asyncio.sleep(0)`` between
+``create_task()`` and ``cancel()`` calls doesn't solve the problem:
+callee could be cancelled on waiting for ``sleep()`` also.
+
+Thus shielding an async function ``task =
+loop.create_task(asyncio.shiedl(coro()))`` still doesn't guarantee
+that ``coro()`` will be executed if callee is cancelled.
