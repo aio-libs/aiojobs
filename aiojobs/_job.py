@@ -44,14 +44,21 @@ class Job:
 
     async def wait(self, timeout=None):
         self._explicit = True
+        scheduler = self._scheduler
         try:
             with async_timeout.timeout(timeout=timeout, loop=self._loop):
                 return await self._task
         except Exception as exc:
-            await self.close()
+            await self._close(scheduler.close_timeout)
             raise exc
 
-    async def close(self, *, timeout=None, _explicit=True):
+    async def close(self, *, timeout=None):
+        self._explicit = True
+        if timeout is None:
+            timeout = self._scheduler.close_timeout
+        await self._close(timeout)
+
+    async def _close(self, timeout):
         if self._closed:
             return
         self._closed = True
@@ -64,8 +71,6 @@ class Job:
             self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
-        if timeout is None:
-            timeout = self._scheduler.close_timeout
         try:
             with async_timeout.timeout(timeout=timeout,
                                        loop=self._loop):
@@ -73,7 +78,7 @@ class Job:
         except asyncio.CancelledError:
             pass
         except asyncio.TimeoutError as exc:
-            if _explicit:
+            if self._explicit:
                 raise
             context = {'message': "Job closing timed out",
                        'job': self,
@@ -82,7 +87,7 @@ class Job:
                 context['source_traceback'] = self._source_traceback
             scheduler.call_exception_handler(context)
         except Exception as exc:
-            if _explicit:
+            if self._explicit:
                 raise
             self._report_exception(exc)
 

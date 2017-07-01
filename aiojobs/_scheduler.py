@@ -67,8 +67,7 @@ class Scheduler(Container):
             # all job will be started on closing
             self._pending.clear()
             await asyncio.gather(
-                *[job.close(timeout=self._close_timeout,
-                            _explicit=False) for job in jobs],
+                *[job._close(self._close_timeout) for job in jobs],
                 loop=self._loop, return_exceptions=True)
             self._jobs.clear()
         self._failed_tasks.put_nowait(None)
