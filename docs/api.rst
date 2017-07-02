@@ -1,9 +1,12 @@
+.. _aiojobs-api:
+
+API
+===
+
 .. module:: aiojobs
 
 .. currentmodule:: aiojobs
 
-API
-===
 
 Instantiation
 -------------

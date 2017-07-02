@@ -1,7 +1,10 @@
-.. currentmodule:: aiojobs
+.. _aiojobs-intro:
 
 Introduction
 ============
+
+.. currentmodule:: aiojobs
+
 
 Rationale
 ---------
