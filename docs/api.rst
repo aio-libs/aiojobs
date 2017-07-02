@@ -29,6 +29,17 @@ Instantiation
      :meth:`Scheduler.call_exception_handler` for documentation about
      *context* and default implementaion).
 
+   .. note::
+
+     *close_timeout* pinned down to ``0.1`` second, it looks too small
+     at first glance. But it is a timeout for waiting cancelled
+     jobs. Normally job is finished immediatelly if it doesn't
+     swallow :exc:`asyncio.CancelledError`.
+
+     But in last case there is no reasonable timeout with good number
+     for everybody, user should pass a value suitable for his
+     environment anyway.
+
 
 Scheduler
 ---------
