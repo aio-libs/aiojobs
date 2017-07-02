@@ -152,3 +152,22 @@ async def test_job_close_timeout(make_scheduler):
     with pytest.raises(asyncio.TimeoutError):
         await job.close()
     assert not handler.called
+
+
+async def test_job_await_pending(make_scheduler, loop):
+    scheduler = await make_scheduler(limit=1)
+
+    fut = asyncio.Future()
+
+    async def coro1():
+        await fut
+
+    async def coro2():
+        return 1
+
+    await scheduler.spawn(coro1())
+    job = await scheduler.spawn(coro2())
+
+    loop.call_later(0.01, fut.set_result, None)
+    ret = await job.wait()
+    assert ret == 1
