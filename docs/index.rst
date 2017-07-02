@@ -31,9 +31,9 @@ Usage example
        scheduler = aiojobs.create_scheduler()
        for i in range(100):
            # spawn jobs
-           await scheduler.spawn(coro(i))
+           await scheduler.spawn(coro(i/10))
 
-       await asyncio.sleep(50)
+       await asyncio.sleep(5.0)
        # not all scheduled jobs are finished at the moment
 
        # gracefuly close spawned jobs
