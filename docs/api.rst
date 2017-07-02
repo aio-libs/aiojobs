@@ -13,11 +13,12 @@ Instantiation
 
    Create a new :class:`Scheduler`.
 
-   * *timeout* is a timeout for job closing, ``0.1`` by default.
+   * *close_timeout* is a timeout for job closing, ``0.1`` by default.
+     If job's closing time takes more than timeout a
+     message is logged by :meth:`Scheduler.call_exception_handler`.
 
    * *limit* is a for jobs spawned by scheduler, ``100`` by
-     default. If spawned job's closing time takes more than timeout a
-     message is logged by :meth:`Scheduler.call_exception_handler`.
+     default.
 
    * *exception_handler* is a callable with
      ``handler(scheduler, context)`` signature to log
@@ -37,8 +38,9 @@ Scheduler
 
    :meth:`close` should be used for finishing all scheduled jobs.
 
-   The class supports :class:`containers.abc.Container` contract: jobs
-   could be iterated etc.
+   The class implements :class:`collections.abc.Collection` contract,
+   jobs could be iterated etc.: ``len(scheduler)``, ``for job in
+   scheduler``, ``job in scheduler`` operations are supported.
 
    User should never instantiate the class but call
    :func:`create_scheduler` async function.
@@ -60,6 +62,9 @@ Scheduler
 
       Count of scheduled but not executed yet jobs.
 
+   .. attribute:: closed
+
+      ``True`` if scheduler is closed (:meth:`close` called).
 
    .. comethod:: spawn(coro)
 
@@ -68,10 +73,44 @@ Scheduler
       Return a new :class:`Job` object.
 
       The job might be started immediately of pushed into pending list
-      if concurrency limit (:attr:`limit`) exceeded.
+      if concurrency :attr:`limit` exceeded.
 
 
    .. comethod:: close()
+
+      Close scheduler and all its jobs.
+
+      It finishing time for particular job exceeds
+      :attr:`close_timeout` this job is logged by
+      :meth:`call_exception_handler`.
+
+
+   .. attribute:: exception_handler
+
+      A callable with signature ``(scheduler, context)`` or ``None``
+      for default handler.
+
+      Used by :meth:`call_exception_handler`.
+
+   .. method:: call_exception_handler(context)
+
+      Log an information about errors in not explicitly awaited jobs
+      and jobs that close procedure exceeds :attr:`close_timeout`.
+
+      By default calls
+      :meth:`asyncio.AbstractEventLoop.call_exception_handler`, the
+      behavior could be overridden by passing *exception_handler*
+      parameter into :func:`create_scheduler`.
+
+      *context* is a :class:`dict` with the following keys:
+
+      * *message*: error message, :class:`str`
+      * *job*: failed job, :class:`Job` instance
+      * *exception*: caugth exception, :exc:`Exception` instance
+      * *source_traceback*: a traceback at the moment of job creation
+        (present only for debug event loops, see also
+        :envvar:`PYTHONASYNCIODEBUG`).
+
 
 Job
 ---

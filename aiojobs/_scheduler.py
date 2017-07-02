@@ -1,11 +1,11 @@
 import asyncio
 from collections import deque
-from collections.abc import Container
+from collections.abc import Collection
 
 from ._job import Job
 
 
-class Scheduler(Container):
+class Scheduler(Collection):
     def __init__(self, *, close_timeout, limit,
                  exception_handler, loop):
         self._loop = loop
@@ -17,22 +17,6 @@ class Scheduler(Container):
         self._failed_task = loop.create_task(self._wait_failed())
         self._pending = deque()
         self._closed = False
-
-    async def spawn(self, coro):
-        # The method is not a coroutine
-        # but let's keep it async for sake of future changes
-        # Migration from function to coroutine is a pain
-        if self._closed:
-            raise RuntimeError("Scheduling a new job after closing")
-        job = Job(coro, self, self._loop)
-        should_start = (self._limit is None or
-                        self.active_count < self._limit)
-        self._jobs.add(job)
-        if should_start:
-            job._start()
-        else:
-            self._pending.append(job)
-        return job
 
     def __iter__(self):
         return iter(list(self._jobs))
@@ -53,8 +37,40 @@ class Scheduler(Container):
         return '<Scheduler {}jobs={}>'.format(info, len(self))
 
     @property
+    def limit(self):
+        return self._limit
+
+    @property
+    def close_timeout(self):
+        return self._close_timeout
+
+    @property
+    def active_count(self):
+        return len(self._jobs) - len(self._pending)
+
+    @property
+    def pending_count(self):
+        return len(self._pending)
+
+    @property
     def closed(self):
         return self._closed
+
+    async def spawn(self, coro):
+        # The method is not a coroutine
+        # but let's keep it async for sake of future changes
+        # Migration from function to coroutine is a pain
+        if self._closed:
+            raise RuntimeError("Scheduling a new job after closing")
+        job = Job(coro, self, self._loop)
+        should_start = (self._limit is None or
+                        self.active_count < self._limit)
+        self._jobs.add(job)
+        if should_start:
+            job._start()
+        else:
+            self._pending.append(job)
+        return job
 
     async def close(self):
         if self._closed:
@@ -72,22 +88,6 @@ class Scheduler(Container):
             self._jobs.clear()
         self._failed_tasks.put_nowait(None)
         await self._failed_task
-
-    @property
-    def limit(self):
-        return self._limit
-
-    @property
-    def active_count(self):
-        return len(self._jobs) - len(self._pending)
-
-    @property
-    def pending_count(self):
-        return len(self._pending)
-
-    @property
-    def close_timeout(self):
-        return self._close_timeout
 
     def call_exception_handler(self, context):
         handler = self._exception_handler
