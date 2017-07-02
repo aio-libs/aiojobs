@@ -1,11 +1,19 @@
 import asyncio
 from collections import deque
-from collections.abc import Collection
+try:
+    from collections.abc import Collection
+except ImportError:  # pragma: no cover
+    # Python 3.5 has no Collection ABC class
+    from collections.abc import Sized, Iterable, Container
+    bases = Sized, Iterable, Container
+else:  # pragma: no cover
+    bases = (Collection,)
+
 
 from ._job import Job
 
 
-class Scheduler(Collection):
+class Scheduler(*bases):
     def __init__(self, *, close_timeout, limit,
                  exception_handler, loop):
         self._loop = loop
