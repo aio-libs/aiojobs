@@ -5,6 +5,9 @@
 API
 ===
 
+Instantiation
+-------------
+
 .. cofunction:: create_scheduler(*, close_timeout=0.1, limit=100,
                                  exception_handler=None)
 
@@ -23,6 +26,8 @@ API
      *context* and default implementaion).
 
 
+Scheduler
+---------
 
 .. class:: Scheduler
 
@@ -33,10 +38,43 @@ API
    :meth:`close` should be used for finishing all scheduled jobs.
 
    The class supports :class:`containers.abc.Container` contract: jobs
+   could be iterated etc.
 
    User should never instantiate the class but call
    :func:`create_scheduler` async function.
 
+   .. attribute:: limit
+
+      Concurrency limit (``100`` by default) or ``None`` if the limit
+      is disabled. See :func:`create_scheduler` for setting the attribute.
+
+   .. attribute:: close_timeout
+
+      Timeout for waiting for jobs closing, ``0.1`` by default.
+
+   .. attribute:: active_count
+
+      Count of active (executed) jobs.
+
+   .. attribute:: pending_count
+
+      Count of scheduled but not executed yet jobs.
+
+
+   .. comethod:: spawn(coro)
+
+      Spawn a new job for execution *coro* coroutine.
+
+      Return a new :class:`Job` object.
+
+      The job might be started immediately of pushed into pending list
+      if concurrency limit (:attr:`limit`) exceeded.
+
+
+   .. comethod:: close()
+
+Job
+---
 
 .. class:: Job
 
