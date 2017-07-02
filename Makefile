@@ -8,7 +8,8 @@ test: flake8
 
 
 cov: flake8
-	@pytest --cov=aiojobs --cov-report=html tests
+	@PYTHONASYNCIODEBUG=1 pytest --cov=aiojobs tests
+	@pytest --cov=aiojobs --cov-append --cov-report=html --cov-report=term tests
 	@echo "open file://`pwd`/htmlcov/index.html"
 
 doc:

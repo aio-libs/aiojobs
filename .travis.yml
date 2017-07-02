@@ -12,11 +12,6 @@ python:
 os:
   - linux
 
-env:
-  matrix:
-    - PYTHONASYNCIODEBUG=x
-    - PYTHONASYNCIODEBUG=
-
 
 install:
   - pip install -U pip wheel setuptools
@@ -34,8 +29,6 @@ jobs:
   include:
     - stage: doc
       python: 3.5
-      env:
-        - STAGE=doc
       install:
         - pip install -r requirements/doc.txt
       script: 
@@ -46,7 +39,6 @@ jobs:
     - stage: deploy
       python: 3.5
       env:
-        - STAGE=deploy
         - secure: "jzSRWWVoShw4pjEeIKdq4YR7ZsJX4oJEHYR2z1lYUjcxXceRZdEFW1s3flCt0IENwNmMAmRDqM0eL0qV0qIkTPuYEJl3qD8gvkWboVR31xWnDl5nQsaBIdSNeKVLW9u0CfdrWx4XhpUny+Jfvd+WYkK1nU0blOe/FEG9GYhr0GUHbSXzaiX3oUBUuSCjucTo6m4P7tWVU463ReLMA6IPIXLeCZI6PGJQtInF8BLD7vbtV49cZtfBMsz85NbwYIf+BKO6DMhYCt33tC5HtC9EBRlq4+jJNIaCRI8ptNN4l2E48KQa1QDt0ymcbDLAW33s88PqO14UcVPAJM/7II2uuqUlWqbYEkaysy7JzWBVz6SjvEQculaXzphq+xwxv3Cb2uC+PZs7biQzeRjn7mKgquSxD3HrQxRN35SFg5esvq2CzmpHUhc8YHxsHZN5js/wUY4djruneOR6BFVLKOmiCRo2yo7qzvhLglk0BGF6DmYpEHsPiXz0yILl3fB6fzmeRztjprM/68h9CUm8NvlEsWRmI+0WsTaJQ9IqkoIeC4B/4L63+1m9VZNF/JkUDQyFTF2h3gPwOTKshvzArugmjA35ZvlepMD6fSJca0+3ad+On+If9VXLH+sBASTBeAG+4Vxk7VOqftXdYZMXYaRALUtVkTgpViiTHmcY7juqIXI="
       install:
         - pip install -r requirements/deploy.txt
