@@ -34,7 +34,7 @@ jobs:
       script: 
         - python setup.py check -rms
 
-      after_success: true  # do nothing
+      after_success: skip  # do nothing
 
     - stage: deploy
       python: 3.5
@@ -48,4 +48,4 @@ jobs:
               python setup.py bdist_wheel;
               twine upload dist/* --username andrew.svetlov --password $PYPI_PASSWD;
           fi
-      after_success: true  # do nothing
+      after_success: skip  # do nothing
