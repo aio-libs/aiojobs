@@ -41,7 +41,25 @@ Usage example
    asyncio.get_event_loop().run_until_complete(main())
 
 
-For futher information read documentaion: https://aiojobs.readthedocs.io
+Integration with aiohttp.web
+----------------------------
+
+.. code-block:: python
+
+   from aiohttp import web
+   from aiojobs.aiohttp import setup, spawn
+   import aiojobs
+
+   async def handler(request):
+       await spawn(requenst, coro())
+       return web.Response()
+
+   app = web.Application()
+   app.router.add_get('/', handler)
+   setup(app)
+
+
+For more information read documentaion: https://aiojobs.readthedocs.io
 
 Communication channels
 ----------------------

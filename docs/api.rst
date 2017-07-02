@@ -192,7 +192,7 @@ jobs.
    closing it on web server shutdown.
 
    * *app* - :class:`aiohttp.web.Application` instance.
-   * *kwargs* - additional named attributes passed to
+   * *kwargs* - additional named parameters passed to
      :func:`aiojobs.create_scheduler`.
 
 .. cofunction:: spawn(request, coro)

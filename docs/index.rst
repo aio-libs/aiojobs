@@ -44,6 +44,23 @@ Usage example
 For futher information read :ref:`aiojobs-quickstart`,
 :ref:`aiojobs-intro` and :ref:`aiojobs-api`.
 
+Integration with aiohttp.web
+----------------------------
+
+.. code-block:: python
+
+   from aiohttp import web
+   from aiojobs.aiohttp import setup, spawn
+   import aiojobs
+
+   async def handler(request):
+       await spawn(requenst, coro())
+       return web.Response()
+
+   app = web.Application()
+   app.router.add_get('/', handler)
+   setup(app)
+
 Source code
 -----------
 

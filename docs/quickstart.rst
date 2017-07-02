@@ -8,11 +8,17 @@ Quickstart
 
 The library gives controlled way for scheduling background tasks.
 
+Installation
+-------------
+
 Install the library:
 
 .. code-block:: bash
 
    $ pip3 install aiojobs
+
+Simple expample
+----------------
 
 The library API is pretty minimalistic: make a scheduler, spawn jobs,
 close scheduler.
@@ -69,6 +75,44 @@ For closing them we calls ``await scheduler.close()``, the call sends
 
 That's pretty much it.
 
+Intergraion with aiohttp web server
+-----------------------------------
+
+.. currentmodule:: aiojobs.aiohttp
+
+In aiohttp web-handlers might be cancelled at any time on client disconnection.
+
+But sometimes user need to prevent unexpected cancellation of some
+code executed by web handler.
+
+Other use case is spawning background tasks like statistics update or
+email sending and returning HTTP response as fast as possible.
+
+Both needs could be solved by *aiojobs.aiohttp* integration module.
+
+The library has two helpers: :func:`setup` for installing web
+application initialization and finalization hooks and :func:`spawn`
+for spawning new jobs:
+
+.. code-block:: python
+
+   from aiohttp import web
+   from aiojobs.aiohttp import setup, spawn
+   import aiojobs
+
+   async def handler(request):
+       await spawn(requenst, coro())
+       return web.Response()
+
+   app = web.Application()
+   app.router.add_get('/', handler)
+   setup(app)
+
+
+
+
+Future reading
+--------------
 
 For more info about library design and principles read :ref:`aiojobs-intro`.
 
