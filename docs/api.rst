@@ -171,3 +171,51 @@ Job
       If *timeout* exceeded :exc:`asyncio.TimeoutError` raised.
 
       The job is in *closed* state after finishing the method.
+
+Intergation with aiohttp web server
+-----------------------------------
+
+.. module:: aiojobs.aiohttp
+
+.. currentmodule:: aiojobs.aiohttp
+
+
+For using the project with *aiohttp* server a scheduler should be
+installed into app and new function should be used for spawning new
+jobs.
+
+.. function:: setup(app, **kwargs)
+
+   Register :attr:`aiohttp.web.Application.on_startup` and
+   :attr:`aiohttp.web.Application.on_cleanup` hooks for creating
+   :class:`aiojobs.Scheduler` on application initialization stage and
+   closing it on web server shutdown.
+
+   * *app* - :class:`aiohttp.web.Application` instance.
+   * *kwargs* - additional named attributes passed to
+     :func:`aiojobs.create_scheduler`.
+
+.. cofunction:: spawn(request, coro)
+
+   Spawn a new job using scheduler registered into ``request.app``.
+
+   * *request* -- :class:`aiohttp.web.Request` given from :term:`web-handler`
+   * *coro* a coroutine to be executed inside a new job
+
+   Return :class:`aiojobs.Job` instance
+
+
+Helpers
+
+.. function:: get_scheduler(request)
+
+   Return a scheduler from request, raise :exc:`RuntimeError` if
+   scheduler was not registered on aplication startup phase (see
+   :func:`setup`).
+
+
+.. function:: get_scheduler_from_app(app)
+
+   Return a scheduler from aiohttp application or ``None`` if
+   scheduler was not registered on aplication startup phase (see
+   :func:`setup`).
