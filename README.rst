@@ -9,14 +9,14 @@ The library gives controlled way for scheduling background tasks for
 asyncio applications.
 
 Installation
-------------
+============
 
 .. code-block:: bash
 
    $ pip3 install aiojobs
 
 Usage example
--------------
+=============
 
 .. code-block:: python3
 
@@ -42,7 +42,7 @@ Usage example
 
 
 Integration with aiohttp.web
-----------------------------
+============================
 
 .. code-block:: python
 
@@ -62,7 +62,7 @@ Integration with aiohttp.web
 For more information read documentaion: https://aiojobs.readthedocs.io
 
 Communication channels
-----------------------
+======================
 
 *aio-libs* google group: https://groups.google.com/forum/#!forum/aio-libs
 
@@ -75,7 +75,7 @@ Please add *python-asyncio* or *aiohttp* tag to your question there.
 
 
 Author and License
--------------------
+==================
 
 The ``aiojobs`` package is written by Andrew Svetlov.
 
