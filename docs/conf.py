@@ -51,6 +51,7 @@ with codecs.open(_version_path, 'r', 'latin1') as fp:
 # ones.
 extensions = ['sphinx.ext.intersphinx',
               'sphinx.ext.viewcode',
+              'alabaster',
               'sphinxcontrib.asyncio']
 
 # Add any paths that contain templates here, relative to this directory.

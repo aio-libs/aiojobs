@@ -1,0 +1,10 @@
+include LICENSE
+include CHANGES.rst
+include README.rst
+include Makefile
+graft aiojobs
+graft docs
+graft examples
+graft tests
+global-exclude *.pyc
+prune docs/_build
