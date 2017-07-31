@@ -18,7 +18,7 @@ Installation
 Usage example
 =============
 
-.. code-block:: python3
+.. code-block:: python
 
    import asyncio
    import aiojobs
