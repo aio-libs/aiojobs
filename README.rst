@@ -18,7 +18,7 @@ Installation
 Usage example
 =============
 
-.. code-block:: python3
+.. code-block:: python
 
    import asyncio
    import aiojobs
@@ -51,7 +51,7 @@ Integration with aiohttp.web
    import aiojobs
 
    async def handler(request):
-       await spawn(requenst, coro())
+       await spawn(request, coro())
        return web.Response()
 
    app = web.Application()
