@@ -54,7 +54,7 @@ Integration with aiohttp.web
    import aiojobs
 
    async def handler(request):
-       await spawn(requenst, coro())
+       await spawn(request, coro())
        return web.Response()
 
    app = web.Application()
