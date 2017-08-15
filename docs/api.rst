@@ -27,13 +27,13 @@ Instantiation
      ``handler(scheduler, context)`` signature to log
      unhandled exceptions from jobs (see
      :meth:`Scheduler.call_exception_handler` for documentation about
-     *context* and default implementaion).
+     *context* and default implementation).
 
    .. note::
 
      *close_timeout* pinned down to ``0.1`` second, it looks too small
      at first glance. But it is a timeout for waiting cancelled
-     jobs. Normally job is finished immediatelly if it doesn't
+     jobs. Normally job is finished immediately if it doesn't
      swallow :exc:`asyncio.CancelledError`.
 
      But in last case there is no reasonable timeout with good number
@@ -120,7 +120,7 @@ Scheduler
 
       * *message*: error message, :class:`str`
       * *job*: failed job, :class:`Job` instance
-      * *exception*: caugth exception, :exc:`Exception` instance
+      * *exception*: caught exception, :exc:`Exception` instance
       * *source_traceback*: a traceback at the moment of job creation
         (present only for debug event loops, see also
         :envvar:`PYTHONASYNCIODEBUG`).
@@ -172,7 +172,7 @@ Job
 
       The job is in *closed* state after finishing the method.
 
-Intergation with aiohttp web server
+Integration with aiohttp web server
 -----------------------------------
 
 .. module:: aiojobs.aiohttp
@@ -210,12 +210,12 @@ Helpers
 .. function:: get_scheduler(request)
 
    Return a scheduler from request, raise :exc:`RuntimeError` if
-   scheduler was not registered on aplication startup phase (see
+   scheduler was not registered on application startup phase (see
    :func:`setup`).
 
 
 .. function:: get_scheduler_from_app(app)
 
    Return a scheduler from aiohttp application or ``None`` if
-   scheduler was not registered on aplication startup phase (see
+   scheduler was not registered on application startup phase (see
    :func:`setup`).

@@ -35,7 +35,7 @@ Usage example
        await asyncio.sleep(5.0)
        # not all scheduled jobs are finished at the moment
 
-       # gracefuly close spawned jobs
+       # gracefully close spawned jobs
        await scheduler.close()
 
    asyncio.get_event_loop().run_until_complete(main())
@@ -59,7 +59,7 @@ Integration with aiohttp.web
    setup(app)
 
 
-For more information read documentaion: https://aiojobs.readthedocs.io
+For more information read documentation: https://aiojobs.readthedocs.io
 
 Communication channels
 ======================

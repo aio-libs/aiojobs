@@ -28,7 +28,7 @@ Usage example
        await asyncio.sleep(timeout)
 
    async def main():
-       scheduler = aiojobs.create_scheduler()
+       scheduler = await aiojobs.create_scheduler()
        for i in range(100):
            # spawn jobs
            await scheduler.spawn(coro(i/10))
@@ -36,12 +36,12 @@ Usage example
        await asyncio.sleep(5.0)
        # not all scheduled jobs are finished at the moment
 
-       # gracefuly close spawned jobs
+       # gracefully close spawned jobs
        await scheduler.close()
 
    asyncio.get_event_loop().run_until_complete(main())
 
-For futher information read :ref:`aiojobs-quickstart`,
+For further information read :ref:`aiojobs-quickstart`,
 :ref:`aiojobs-intro` and :ref:`aiojobs-api`.
 
 Integration with aiohttp.web

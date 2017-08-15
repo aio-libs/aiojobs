@@ -113,7 +113,7 @@ class Scheduler(*bases):
         if not self._pending:
             return
         # No pending jobs when limit is None
-        # Safe to substract.
+        # Safe to subtract.
         ntodo = self._limit - self.active_count
         i = 0
         while i < ntodo:
