@@ -11,18 +11,18 @@ Rationale
 
 Asyncio has builtin support for starting new tasks.
 
-But for many reasons raw tasks are not sufficient for dayly needs:
+But for many reasons raw tasks are not sufficient for daily needs:
 
 #. *Fire-and-forget* call like ``loop.create_task(f())`` doesn't give
    control about errors raised from ``f()`` async function: all
-   exceptions are sinked into
+   exceptions are thrown into
    :meth:`asyncio.AbstractEventLoop.call_exception_handler`.
 #. Tasks are not grouped into a
    container. :meth:`asyncio.Task.get_tasks()` gets all of them but it
    is not very helpful: typical asyncio program creates a lot of
    internal tasks.
 #. Graceful shutdown requires correct cancellation for task spawned by user.
-#. Very often a limit for amount of cuncurrent user tasks a desirable
+#. Very often a limit for amount of concurrent user tasks a desirable
    to prevent over-flooding.
 
 Web servers like :mod:`aiohttp.web` introduces more challenges: a code
@@ -34,7 +34,7 @@ database on processing GET HTTP request and the request is cancelled
 there is no reason to continue data collecting: output HTTP channel is
 closed anyway.
 
-But sometimes HTTP POST processing requeires atomicity: data should be
+But sometimes HTTP POST processing requires atomicity: data should be
 put into DB or sent to other server regardless of HTTP client
 disconnection. It could be done by spawning a new task for data
 sending but see concerns above.
@@ -123,7 +123,7 @@ The problem is::
    task = loop.create_task(coro())
    task.cancel()
 
-cancels a task immidiatelly, a code from ``coro()`` has no chance to
+cancels a task immediately, a code from ``coro()`` has no chance to
 be executed.
 
 Adding a context switch like ``asyncio.sleep(0)`` between
@@ -131,5 +131,5 @@ Adding a context switch like ``asyncio.sleep(0)`` between
 callee could be cancelled on waiting for ``sleep()`` also.
 
 Thus shielding an async function ``task =
-loop.create_task(asyncio.shiedl(coro()))`` still doesn't guarantee
+loop.create_task(asyncio.shield(coro()))`` still doesn't guarantee
 that ``coro()`` will be executed if callee is cancelled.

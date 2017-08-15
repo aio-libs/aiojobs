@@ -228,7 +228,7 @@ async def test_limit(make_scheduler):
     assert s2.limit == 2
 
 
-async def test_scheduler_councurrency_limit(make_scheduler):
+async def test_scheduler_concurrency_limit(make_scheduler):
     scheduler = await make_scheduler(limit=1)
 
     async def coro(fut):
@@ -297,7 +297,7 @@ async def test_resume_closed_task(make_scheduler):
     assert len(scheduler) == 0
 
 
-async def test_concurreny_disabled(make_scheduler):
+async def test_concurrency_disabled(make_scheduler):
     fut1 = asyncio.Future()
     fut2 = asyncio.Future()
 
