@@ -48,7 +48,6 @@ Integration with aiohttp.web
 
    from aiohttp import web
    from aiojobs.aiohttp import setup, spawn
-   import aiojobs
 
    async def handler(request):
        await spawn(request, coro())
