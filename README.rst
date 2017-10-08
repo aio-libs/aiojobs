@@ -1,6 +1,18 @@
 =======
 aiojobs
 =======
+.. image:: https://travis-ci.org/aio-libs/aiojobs.svg?branch=master
+    :target: https://travis-ci.org/aio-libs/aiojobs
+.. image:: https://codecov.io/gh/aio-libs/aiojobs/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/aio-libs/aiojobs
+.. image:: https://img.shields.io/pypi/v/aiojobs.svg
+    :target: https://pypi.python.org/pypi/aiojobs
+.. image:: https://readthedocs.org/projects/aiojobs/badge/?version=latest
+    :target: http://aiojobs.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+    :target: https://gitter.im/aio-libs/Lobby
+    :alt: Chat on Gitter
 
 Jobs scheduler for managing background task (asyncio)
 
