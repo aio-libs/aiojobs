@@ -39,7 +39,7 @@ Usage example
        await asyncio.sleep(timeout)
 
    async def main():
-       scheduler = aiojobs.create_scheduler()
+       scheduler = await aiojobs.create_scheduler()
        for i in range(100):
            # spawn jobs
            await scheduler.spawn(coro(i/10))
