@@ -1,4 +1,5 @@
-pytest-aiohttp
-pytest-cov
-flake8
 -e .
+flake8
+pytest-aiohttp
+pytest-asyncio
+pytest-cov
