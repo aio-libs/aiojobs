@@ -19,6 +19,20 @@ async def test_spawn(scheduler, loop):
     assert job in scheduler
 
 
+async def test_spawn_nowait(scheduler, loop):
+    async def coro():
+        return 1
+    job = scheduler.spawn_nowait(coro())
+    ret = await job.wait()
+    assert ret == 1
+
+    assert job.closed
+
+    assert len(scheduler) == 0
+    assert list(scheduler) == []
+    assert job not in scheduler
+
+
 async def test_run_retval(scheduler, loop):
     async def coro():
         return 1
