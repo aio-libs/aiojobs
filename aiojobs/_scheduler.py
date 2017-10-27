@@ -71,7 +71,8 @@ class Scheduler(*bases):
         return self.spawn_nowait(coro)
 
     def spawn_nowait(self, coro) -> Job:
-        """Synchronous version of `spawn`.
+        """
+        Synchronous version of `spawn`.
         """
         return self._spawn_nowait(coro)
 
@@ -104,7 +105,8 @@ class Scheduler(*bases):
         return self._exception_handler
 
     def _spawn_nowait(self, coro) -> Job:
-        """Common (synchronous) job-spawning code.
+        """
+        Common (synchronous) job-spawning code.
         """
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
