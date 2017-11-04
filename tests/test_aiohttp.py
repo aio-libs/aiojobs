@@ -4,7 +4,8 @@ import pytest
 from aiohttp import web
 
 from aiojobs.aiohttp import setup as aiojobs_setup
-from aiojobs.aiohttp import get_scheduler, spawn
+from aiojobs.aiohttp import (atomic, get_scheduler, get_scheduler_from_app,
+                             spawn)
 
 
 async def test_plugin(test_client):
@@ -45,3 +46,23 @@ async def test_no_setup(test_client):
     client = await test_client(app)
     resp = await client.get('/')
     assert resp.status == 200
+
+
+async def test_atomic(test_client):
+    @atomic
+    async def handler(request):
+        await asyncio.sleep(0)
+        return web.Response()
+
+    app = web.Application()
+    app.router.add_get('/', handler)
+    aiojobs_setup(app)
+
+    client = await test_client(app)
+    resp = await client.get('/')
+    assert resp.status == 200
+
+    scheduler = get_scheduler_from_app(app)
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0

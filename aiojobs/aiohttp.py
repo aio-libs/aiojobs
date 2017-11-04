@@ -25,7 +25,8 @@ async def spawn(request, coro):
 def atomic(coro):
     @wraps(coro)
     async def wrapper(request):
-        return await spawn(request, coro)
+        job = await spawn(request, coro(request))
+        return await job.wait()
     return wrapper
 
 

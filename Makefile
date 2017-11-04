@@ -1,5 +1,8 @@
 all: test
 
+isort:
+	isort -rc
+
 flake8:
 	@flake8 .
 	isort -rc -c
