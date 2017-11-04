@@ -2,6 +2,7 @@ all: test
 
 flake8:
 	@flake8 .
+	isort -rc -c
 
 test: flake8
 	@pytest tests

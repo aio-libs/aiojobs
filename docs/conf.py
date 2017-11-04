@@ -21,8 +21,8 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-import os
 import codecs
+import os
 import re
 
 _docs_path = os.path.dirname(__file__)
@@ -139,6 +139,13 @@ html_favicon = 'aiojobs-icon.ico'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Custom sidebar templates, maps document names to template names.
+html_sidebars = {
+    '**': [
+        'about.html', 'navigation.html', 'searchbox.html',
+    ]
+}
 
 
 # -- Options for HTMLHelp output ------------------------------------------

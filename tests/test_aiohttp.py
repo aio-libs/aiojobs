@@ -1,9 +1,10 @@
 import asyncio
 
 import pytest
-
 from aiohttp import web
-from aiojobs.aiohttp import setup as aiojobs_setup, spawn, get_scheduler
+
+from aiojobs.aiohttp import setup as aiojobs_setup
+from aiojobs.aiohttp import get_scheduler, spawn
 
 
 async def test_plugin(test_client):
