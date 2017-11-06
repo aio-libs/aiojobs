@@ -1,5 +1,8 @@
 import asyncio
 from collections import deque
+
+from ._job import Job
+
 try:
     from collections.abc import Collection
 except ImportError:  # pragma: no cover
@@ -8,9 +11,6 @@ except ImportError:  # pragma: no cover
     bases = Sized, Iterable, Container
 else:  # pragma: no cover
     bases = (Collection,)
-
-
-from ._job import Job
 
 
 class Scheduler(*bases):

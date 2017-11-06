@@ -1,7 +1,9 @@
+from functools import wraps
+
 from . import create_scheduler
 
-
-__all__ = ('setup', 'spawn', 'get_scheduler', 'get_scheduler_from_app')
+__all__ = ('setup', 'spawn', 'get_scheduler', 'get_scheduler_from_app',
+           'atomic')
 
 
 def get_scheduler(request):
@@ -18,6 +20,14 @@ def get_scheduler_from_app(app):
 
 async def spawn(request, coro):
     return await get_scheduler(request).spawn(coro)
+
+
+def atomic(coro):
+    @wraps(coro)
+    async def wrapper(request):
+        job = await spawn(request, coro(request))
+        return await job.wait()
+    return wrapper
 
 
 def setup(app, **kwargs):

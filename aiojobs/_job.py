@@ -1,6 +1,6 @@
 import asyncio
-import traceback
 import sys
+import traceback
 
 import async_timeout
 

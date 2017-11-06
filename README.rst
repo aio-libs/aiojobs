@@ -71,6 +71,15 @@ Integration with aiohttp.web
    app.router.add_get('/', handler)
    setup(app)
 
+or just
+
+.. code-block:: python
+
+   from aiojobs.aiohttp import atomic
+
+   @atomic
+   async def handler(request):
+       return web.Response()
 
 For more information read documentation: https://aiojobs.readthedocs.io
 

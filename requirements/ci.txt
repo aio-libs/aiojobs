@@ -3,3 +3,6 @@ flake8
 pytest-aiohttp
 pytest-asyncio
 pytest-cov
+flake8
+isort
+-e .
