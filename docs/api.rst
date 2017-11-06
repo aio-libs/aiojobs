@@ -219,3 +219,25 @@ Helpers
    Return a scheduler from aiohttp application or ``None`` if
    scheduler was not registered on application startup phase (see
    :func:`setup`).
+
+.. decorator:: atomic
+
+   Wrap a web-handler to execute the entire handler as a new job.
+
+   .. code-block:: python
+
+      @atomic
+      async def handler(request):
+          return web.Response()
+
+   is a functional equivalent of
+
+
+   .. code-block:: python
+
+      async def inner(request):
+          return web.Response()
+
+      async def handler(request):
+          job = await spawn(request, coro(request))
+          return await job.wait()

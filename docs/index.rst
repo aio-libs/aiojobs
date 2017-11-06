@@ -54,12 +54,22 @@ Integration with aiohttp.web
    import aiojobs
 
    async def handler(request):
-       await spawn(request, coro())
+       await spawn(request, coro())
        return web.Response()
 
    app = web.Application()
    app.router.add_get('/', handler)
    setup(app)
+
+or just
+
+.. code-block:: python
+
+   from aiojobs.aiohttp import atomic
+
+   @atomic
+   async def handler(request):
+       return web.Response()
 
 Source code
 -----------
