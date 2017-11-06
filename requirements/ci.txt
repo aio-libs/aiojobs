@@ -1,4 +1,3 @@
--e .
 flake8
 pytest-aiohttp
 pytest-asyncio
