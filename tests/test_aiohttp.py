@@ -66,3 +66,24 @@ async def test_atomic(test_client):
 
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
+
+
+async def test_atomic_from_view(test_client):
+    app = web.Application()
+
+    class MyView(web.View):
+        @atomic
+        async def get(self):
+            return web.Response()
+
+    app.router.add_route("*", "/", MyView)
+    aiojobs_setup(app)
+
+    client = await test_client(app)
+    resp = await client.get('/')
+    assert resp.status == 200
+
+    scheduler = get_scheduler_from_app(app)
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
