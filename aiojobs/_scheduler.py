@@ -64,21 +64,17 @@ class Scheduler(*bases):
     def closed(self):
         return self._closed
 
-    async def spawn(self, coro):
+    async def spawn(self, coro) -> Job:
         # The method is not a coroutine
         # but let's keep it async for sake of future changes
         # Migration from function to coroutine is a pain
-        if self._closed:
-            raise RuntimeError("Scheduling a new job after closing")
-        job = Job(coro, self, self._loop)
-        should_start = (self._limit is None or
-                        self.active_count < self._limit)
-        self._jobs.add(job)
-        if should_start:
-            job._start()
-        else:
-            self._pending.append(job)
-        return job
+        return self.spawn_nowait(coro)
+
+    def spawn_nowait(self, coro) -> Job:
+        """
+        Synchronous version of `spawn`.
+        """
+        return self._spawn_nowait(coro)
 
     async def close(self):
         if self._closed:
@@ -107,6 +103,22 @@ class Scheduler(*bases):
     @property
     def exception_handler(self):
         return self._exception_handler
+
+    def _spawn_nowait(self, coro) -> Job:
+        """
+        Common (synchronous) job-spawning code.
+        """
+        if self._closed:
+            raise RuntimeError("Scheduling a new job after closing")
+        job = Job(coro, self, self._loop)
+        should_start = (self._limit is None or
+                        self.active_count < self._limit)
+        self._jobs.add(job)
+        if should_start:
+            job._start()
+        else:
+            self._pending.append(job)
+        return job
 
     def _done(self, job):
         self._jobs.discard(job)

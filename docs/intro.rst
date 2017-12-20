@@ -57,9 +57,13 @@ There is simple usage example::
 
    scheduler = await aiojobs.create_scheduler()
 
-   job = scheduler.spawn(f())
+   job = await scheduler.spawn(f())
 
    await scheduler.close()
+
+Or, using the synchronous interface::
+
+   job = scheduler.spawn_nowait(f())
 
 Every job could be explicitly awaited for its result or closed::
 
@@ -92,7 +96,7 @@ The limit could be relaxed by passing *limit* parameter into
 aiojobs.create_scheduler(limit=100000)`` or even disabled by
 ``limit=None``.
 
-Graceful Shutdown
+Graceful shutdown
 -----------------
 
 All spawned jobs are stopped and closed by :meth:`Scheduler.close()`.
