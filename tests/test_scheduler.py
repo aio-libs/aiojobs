@@ -316,6 +316,192 @@ async def test_concurrency_disabled(make_scheduler):
     assert scheduler.active_count == 0
 
 
+async def test_pending_limit(make_scheduler):
+    s1 = await make_scheduler()
+    assert s1.pending_limit == 100
+    s2 = await make_scheduler(pending_limit=2)
+    assert s2.pending_limit == 2
+
+
+async def test_scheduler_pending_limit(make_scheduler, loop):
+    scheduler = await make_scheduler(limit=1, pending_limit=1)
+
+    async def coro1(fut):
+        await fut
+
+    async def coro2():
+        return 1
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+    job1 = await scheduler.spawn(coro1(fut1))
+    job2 = await scheduler.spawn(coro1(fut2))
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 1
+    assert scheduler.waiting_count == 0
+    assert job2.pending
+
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(scheduler.spawn(coro2),
+                               timeout=0.01,
+                               loop=loop)
+    await asyncio.sleep(0.01, loop=loop)
+
+    assert scheduler.waiting_count == 0
+
+    fut3 = asyncio.Future()
+    job3_fut = asyncio.ensure_future(scheduler.spawn(coro1(fut3)), loop=loop)
+    await asyncio.sleep(0.01, loop=loop)
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 1
+    assert scheduler.waiting_count == 1
+    assert not job3_fut.done()
+
+    fut1.set_result(None)
+    await job1.wait()
+    job3 = await job3_fut
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 1
+    assert scheduler.waiting_count == 0
+    assert job1.closed
+    assert job2.active
+    assert job3.pending
+
+    fut2.set_result(None)
+    fut3.set_result(None)
+    await job2.wait()
+    await job3.wait()
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+    assert job1.closed
+    assert job2.closed
+    assert job3.closed
+
+
+async def test_scheduler_pending_disable(make_scheduler, loop):
+    scheduler = await make_scheduler(limit=1, pending_limit=0)
+
+    async def coro1(fut):
+        await fut
+
+    async def coro2():
+        return 1
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+
+    fut1 = asyncio.Future()
+    job1 = await scheduler.spawn(coro1(fut1))
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+    assert job1.active
+
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(scheduler.spawn(coro2),
+                               timeout=0.01,
+                               loop=loop)
+    await asyncio.sleep(0.01, loop=loop)
+
+    assert scheduler.waiting_count == 0
+
+    fut2 = asyncio.Future()
+    job2_fut = asyncio.ensure_future(scheduler.spawn(coro1(fut2)), loop=loop)
+    await asyncio.sleep(0.01, loop=loop)
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 1
+    assert not job2_fut.done()
+
+    fut1.set_result(None)
+    await job1.wait()
+    job2 = await job2_fut
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+    assert job1.closed
+    assert job2.active
+
+
+async def test_cancel_waiting_task(make_scheduler, loop):
+    scheduler = await make_scheduler(limit=1, pending_limit=0)
+
+    async def coro1(fut):
+        await fut
+
+    async def coro2():
+        return 1
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+
+    fut1 = asyncio.Future()
+    job1 = await scheduler.spawn(coro1(fut1))
+    job2_fut = asyncio.ensure_future(scheduler.spawn(coro2()), loop=loop)
+    await asyncio.sleep(0.01, loop=loop)
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 1
+    assert job1.active
+    assert not job2_fut.done()
+
+    job2_fut.cancel()
+    await asyncio.sleep(0.01, loop=loop)
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+    assert job1.active
+    assert job2_fut.cancelled()
+
+
+async def test_lack_waiting_task(make_scheduler, loop):
+    scheduler = await make_scheduler(limit=0, pending_limit=2)
+
+    async def coro1():
+        return 1
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert scheduler.waiting_count == 0
+
+    job1 = await scheduler.spawn(coro1())
+    job2 = await scheduler.spawn(coro1())
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 2
+    assert scheduler.waiting_count == 0
+    assert job1.pending
+    assert job2.pending
+
+    job3_fut = asyncio.ensure_future(scheduler.spawn(coro1()), loop=loop)
+    await job1.close()
+    await job2.close()
+    job3 = await job3_fut
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 1
+    assert scheduler.waiting_count == 0
+    assert job1.closed
+    assert job2.closed
+    assert job3.pending
+
+
 async def test_run_after_close(scheduler, loop):
     async def f():
         pass

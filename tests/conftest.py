@@ -3,7 +3,10 @@ import pytest
 from aiojobs import create_scheduler
 from aiojobs._scheduler import Scheduler
 
-PARAMS = dict(close_timeout=1.0, limit=100, exception_handler=None)
+PARAMS = dict(close_timeout=1.0,
+              limit=100,
+              pending_limit=100,
+              exception_handler=None)
 
 
 @pytest.fixture
