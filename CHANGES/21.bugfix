@@ -1,0 +1,1 @@
+Fix AttributeError when `@acomic` decorator is used in Class Based Views.
