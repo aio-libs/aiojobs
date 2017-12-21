@@ -87,8 +87,7 @@ class Scheduler(*bases):
                        self.pending_count >= self._pending_limit)
         if not should_start and should_wait:
             waiter = self._loop.create_future()
-            waiter._job = job
-            waiter.add_done_callback(self._release_waiter)
+            waiter.add_done_callback(self._waiter_done_callback_with(job))
             self._waiting.append(waiter)
             await waiter
             # Recalculate for the current and new situation
@@ -129,21 +128,20 @@ class Scheduler(*bases):
     def exception_handler(self):
         return self._exception_handler
 
-    def _release_waiter(self, waiter):
-        if waiter in self._waiting:
-            self._waiting.remove(waiter)
-        if waiter.cancelled():
-            job = waiter._job
-            if job._task is None:
-                # the task is closed immediately without actual execution
-                # it prevents a warning like
-                # RuntimeWarning: coroutine 'coro' was never awaited
-                job._start()
-            if not job._task.done():
-                job._task.cancel()
-            self._failed_tasks.put_nowait(job._task)
-        if not waiter.done():
-            waiter.set_result(None)
+    def _waiter_done_callback_with(self, job):
+        def waiter_done_callback(waiter):
+            if waiter in self._waiting:
+                self._waiting.remove(waiter)
+            if waiter.cancelled():
+                if job._task is None:
+                    # the task is closed immediately without actual execution
+                    # it prevents a warning like
+                    # RuntimeWarning: coroutine 'coro' was never awaited
+                    job._start()
+                if not job._task.done():
+                    job._task.cancel()
+                self._failed_tasks.put_nowait(job._task)
+        return waiter_done_callback
 
     def _done(self, job):
         self._jobs.discard(job)
@@ -164,9 +162,10 @@ class Scheduler(*bases):
             if ntodo - i == 1:
                 # One starting job closes, and one waiting job starts,
                 # when pending_limit is 0
-                assert self._waiting
+                assert self.pending_limit == 0
                 waiter = self._waiting.popleft()
-                self._release_waiter(waiter)
+                if not waiter.done():
+                    waiter.set_result(None)
             # No waiting jobs when limit is None
             # Safe to subtract.
             ntopend = self._pending_limit - self.pending_count
@@ -175,7 +174,8 @@ class Scheduler(*bases):
                 if not self._waiting:
                     break
                 waiter = self._waiting.popleft()
-                self._release_waiter(waiter)
+                if not waiter.done():
+                    waiter.set_result(None)
                 i += 1
 
     async def _wait_failed(self):
