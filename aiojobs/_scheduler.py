@@ -81,9 +81,9 @@ class Scheduler(*bases):
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
         job = Job(coro, self, self._loop)
-        should_start = (self._limit is None or 
+        should_start = (self._limit is None or
                         self.active_count < self._limit)
-        should_wait = (self._pending_limit is not None and 
+        should_wait = (self._pending_limit is not None and
                        self.pending_count >= self._pending_limit)
         if not should_start and should_wait:
             waiter = self._loop.create_future()
