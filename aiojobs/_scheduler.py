@@ -14,16 +14,18 @@ else:  # pragma: no cover
 
 
 class Scheduler(*bases):
-    def __init__(self, *, close_timeout, limit,
+    def __init__(self, *, close_timeout, limit, pending_limit,
                  exception_handler, loop):
         self._loop = loop
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
+        self._pending_limit = pending_limit
         self._exception_handler = exception_handler
         self._failed_tasks = asyncio.Queue(loop=loop)
         self._failed_task = loop.create_task(self._wait_failed())
         self._pending = deque()
+        self._waiting = deque()
         self._closed = False
 
     def __iter__(self):
@@ -49,6 +51,10 @@ class Scheduler(*bases):
         return self._limit
 
     @property
+    def pending_limit(self):
+        return self._pending_limit
+
+    @property
     def close_timeout(self):
         return self._close_timeout
 
@@ -59,6 +65,10 @@ class Scheduler(*bases):
     @property
     def pending_count(self):
         return len(self._pending)
+
+    @property
+    def waiting_count(self):
+        return len(self._waiting)
 
     @property
     def closed(self):
@@ -73,6 +83,16 @@ class Scheduler(*bases):
         job = Job(coro, self, self._loop)
         should_start = (self._limit is None or
                         self.active_count < self._limit)
+        should_wait = (self._pending_limit is not None and
+                       self.pending_count >= self._pending_limit)
+        if not should_start and should_wait:
+            waiter = self._loop.create_future()
+            waiter.add_done_callback(self._waiter_done_callback_with(job))
+            self._waiting.append(waiter)
+            await waiter
+            # Recalculate for the current and new situation
+            should_start = (self._limit is None
+                            or self.active_count < self._limit)
         self._jobs.add(job)
         if should_start:
             job._start()
@@ -108,22 +128,55 @@ class Scheduler(*bases):
     def exception_handler(self):
         return self._exception_handler
 
+    def _waiter_done_callback_with(self, job):
+        def waiter_done_callback(waiter):
+            if waiter in self._waiting:
+                self._waiting.remove(waiter)
+            if waiter.cancelled():
+                if job._task is None:
+                    # the task is closed immediately without actual execution
+                    # it prevents a warning like
+                    # RuntimeWarning: coroutine 'coro' was never awaited
+                    job._start()
+                if not job._task.done():
+                    job._task.cancel()
+                self._failed_tasks.put_nowait(job._task)
+        return waiter_done_callback
+
     def _done(self, job):
         self._jobs.discard(job)
-        if not self._pending:
-            return
         # No pending jobs when limit is None
         # Safe to subtract.
         ntodo = self._limit - self.active_count
         i = 0
-        while i < ntodo:
-            if not self._pending:
-                return
-            new_job = self._pending.popleft()
-            if new_job.closed:
-                continue
-            new_job._start()
-            i += 1
+        if self._pending:
+            while i < ntodo:
+                if not self._pending:
+                    break
+                new_job = self._pending.popleft()
+                if new_job.closed:
+                    continue
+                new_job._start()
+                i += 1
+        if self._waiting:
+            if ntodo - i == 1:
+                # One starting job closes, and one waiting job starts,
+                # when pending_limit is 0
+                assert self.pending_limit == 0
+                waiter = self._waiting.popleft()
+                if not waiter.done():
+                    waiter.set_result(None)
+            # No waiting jobs when limit is None
+            # Safe to subtract.
+            ntopend = self._pending_limit - self.pending_count
+            i = 0
+            while i < ntopend:
+                if not self._waiting:
+                    break
+                waiter = self._waiting.popleft()
+                if not waiter.done():
+                    waiter.set_result(None)
+                i += 1
 
     async def _wait_failed(self):
         # a coroutine for waiting failed tasks
