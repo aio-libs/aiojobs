@@ -94,7 +94,8 @@ class Scheduler(*bases):
         if jobs:
             # cleanup pending queue
             # all job will be started on closing
-            self._pending._queue.clear()
+            while not self._pending.empty():
+                self._pending.get_nowait()
             await asyncio.gather(
                 *[job._close(self._close_timeout) for job in jobs],
                 loop=self._loop, return_exceptions=True)
