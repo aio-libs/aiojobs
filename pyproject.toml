@@ -1,0 +1,27 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "aiojobs"
+author = "Andrew Svetlov"
+author-email = "andrew.svetlov@gmail.com"
+home-page = "https://github.com/aio-libs/aiojobs"
+requires=["aiohttp >= 2.3.0"]
+requires-python=">=3.5"
+classifiers = ["License :: OSI Approved :: Apache Software License",
+	       "Development Status :: 4 - Beta",
+	       "Intended Audience :: Developers",
+	       "Framework :: AsyncIO",
+	       "Programming Language :: Python",
+	       "Programming Language :: Python :: 3",
+               "Programming Language :: Python :: 3.5",
+               "Programming Language :: Python :: 3.6",
+	       "Topic :: Software Development",
+]
+
+[tool.towncrier]
+package = "aiojobs"
+filename = "CHANGES.rst"
+directory = "CHANGES/"
+title_format = "{version} ({project_date})"

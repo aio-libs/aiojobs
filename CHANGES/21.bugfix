@@ -1,1 +1,1 @@
-Fix AttributeError when `@acomic` decorator is used in Class Based Views.
+Fix AttributeError when `@atomic` decorator is used in Class Based Views.
