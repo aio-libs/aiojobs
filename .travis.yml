@@ -25,7 +25,7 @@ after_success:
 
 _helpers:
 - &_skip_steps
-  python: 3.5
+  python: 3.6
   before_install: skip
   install: skip
   before_script: skip
@@ -45,15 +45,13 @@ jobs:
     - stage: deploy
       <<: *_skip_steps
       env:
-        - secure: "jzSRWWVoShw4pjEeIKdq4YR7ZsJX4oJEHYR2z1lYUjcxXceRZdEFW1s3flCt0IENwNmMAmRDqM0eL0qV0qIkTPuYEJl3qD8gvkWboVR31xWnDl5nQsaBIdSNeKVLW9u0CfdrWx4XhpUny+Jfvd+WYkK1nU0blOe/FEG9GYhr0GUHbSXzaiX3oUBUuSCjucTo6m4P7tWVU463ReLMA6IPIXLeCZI6PGJQtInF8BLD7vbtV49cZtfBMsz85NbwYIf+BKO6DMhYCt33tC5HtC9EBRlq4+jJNIaCRI8ptNN4l2E48KQa1QDt0ymcbDLAW33s88PqO14UcVPAJM/7II2uuqUlWqbYEkaysy7JzWBVz6SjvEQculaXzphq+xwxv3Cb2uC+PZs7biQzeRjn7mKgquSxD3HrQxRN35SFg5esvq2CzmpHUhc8YHxsHZN5js/wUY4djruneOR6BFVLKOmiCRo2yo7qzvhLglk0BGF6DmYpEHsPiXz0yILl3fB6fzmeRztjprM/68h9CUm8NvlEsWRmI+0WsTaJQ9IqkoIeC4B/4L63+1m9VZNF/JkUDQyFTF2h3gPwOTKshvzArugmjA35ZvlepMD6fSJca0+3ad+On+If9VXLH+sBASTBeAG+4Vxk7VOqftXdYZMXYaRALUtVkTgpViiTHmcY7juqIXI="
-      deploy:
-        provider: pypi
-        on:
-          tags: true
-        user: andrew.svetlov
-        password: $PYPI_PASSWD
-        distributions: sdist bdist_wheel
-        skip_upload_docs: true
+        - FLIT_USERNAME=andrew.svetlov
+        - secure: "UlJhfAPb0IWwFs/BZoiFHKxgoB2S1vkUNyjw8MXldUNPalR5eGh7ZXR+DiZpLGEl92vt4V7cpLqL9oY8GQeN6xczwipd/sc93ReG1qvGje/G3g7E5O3hIBio6ZXuO9Bsg9Xk6pQgIsnF6s9nZlu6rX/+Ru2U9n5CfeiznoTtfOUDc4I7JWdPbv7ks/RCYK/HQMrpDh55xGYH/6cSbKRVImCkehmg7bFprApn0RfZu3uuOYs89yjYfjNQxPoWlVF0yjAHJa3opdHzR1SlifTZotgSZwN5VWVV1XPqsrfdhTVYuziXsLmekL6jPbAJ4S85omG84Kns3bf0osWWTJ/E4CGrIQTAsz78yPaM/yFg/rwK3Zy4568y9FN+hIjVe/SyYTtSBWFgbZIYeIry2QFnN910TJ33t4qFyaw763rfHNGEZd1sh5w24Jh1JmhGZUk1QyGOk3GZWhZkaMF8qqL6xWnkPy+FKauXKeYaq73nhU4zCswDw9fVpr22Dz27MYh0hEyVLy+30Iaxab8x0wUQdlouTjPacgRUHkH1itsN6xuMOnisvdY8foVee/yDq9qHI8dkUhCtbNgT3rK03LYoIDFOiay4vxGEkhtTAdrpoiDVf7Py7jIezdt8tlqlAFsZOSi6z/1YRlNBhgloTh9Mh/eSKQbCWamNudmjolmuQRA="  # FLIT_PASSWORD
+      install:
+        - pip install -r requirements/deploy.txt
+      script:
+        - flit build
+        - flit publish
 
 
 stages:
