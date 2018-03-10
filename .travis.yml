@@ -40,7 +40,7 @@ jobs:
       install:
         - pip install -r requirements/doc.txt
       script: 
-        - python setup.py check -rms
+        - make doc
 
     - stage: deploy
       <<: *_skip_steps
