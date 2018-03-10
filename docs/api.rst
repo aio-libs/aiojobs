@@ -11,7 +11,8 @@ API
 Instantiation
 -------------
 
-.. cofunction:: create_scheduler(*, close_timeout=0.1, limit=100,
+.. cofunction:: create_scheduler(*, close_timeout=0.1, limit=100, \
+                                 pending_limit=10000, \
                                  exception_handler=None)
 
    Create a new :class:`Scheduler`.
@@ -22,6 +23,9 @@ Instantiation
 
    * *limit* is a for jobs spawned by scheduler, ``100`` by
      default.
+
+   * *pending_limit* is a limit for amount of jobs awaiting starting,
+     ``10000`` by default. Use ``0`` for infinite pending queue size.
 
    * *exception_handler* is a callable with
      ``handler(scheduler, context)`` signature to log
@@ -64,6 +68,14 @@ Scheduler
       Concurrency limit (``100`` by default) or ``None`` if the limit
       is disabled. See :func:`create_scheduler` for setting the attribute.
 
+   .. attribute:: pending_limit
+
+      A limit for *pending* queue size (``0`` for unlimited queue).
+
+      See :meth:`spawn` for details.
+
+      .. versionadded:: 0.2
+
    .. attribute:: close_timeout
 
       Timeout for waiting for jobs closing, ``0.1`` by default.
@@ -89,6 +101,15 @@ Scheduler
       The job might be started immediately of pushed into pending list
       if concurrency :attr:`limit` exceeded.
 
+      If :attr:`pending_count` is greater than :attr:`pending_limit`
+      and the limit is *finite* (not ``0``) the method suspends
+      execution without scheduling a new job (adding it into pending
+      queue) until penging queue size will be reduced to have a free
+      slot.
+
+      .. versionchanged:: 0.2
+
+         The method respects :attr:`pending_limit` now.
 
    .. comethod:: close()
 

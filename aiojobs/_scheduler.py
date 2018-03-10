@@ -19,7 +19,6 @@ class Scheduler(*bases):
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
-        self._pending_limit = pending_limit or 0  # the queue size is infinite
         self._exception_handler = exception_handler
         self._failed_tasks = asyncio.Queue(loop=loop)
         self._failed_task = loop.create_task(self._wait_failed())
@@ -50,7 +49,7 @@ class Scheduler(*bases):
 
     @property
     def pending_limit(self):
-        return self._pending_limit
+        return self._pending.maxsize
 
     @property
     def close_timeout(self):

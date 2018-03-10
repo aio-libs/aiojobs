@@ -231,7 +231,7 @@ async def test_limit(make_scheduler):
 
 async def test_pending_limit(make_scheduler):
     s1 = await make_scheduler()
-    assert s1.pending_limit == 0
+    assert s1.pending_limit == 10000
     s2 = await make_scheduler(pending_limit=2)
     assert s2.pending_limit == 2
 
