@@ -1,1 +1,0 @@
-Fix AttributeError when `@atomic` decorator is used in Class Based Views.

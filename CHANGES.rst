@@ -13,3 +13,20 @@ Changelog
     WARNING: Don't drop the next directive!
 
 .. towncrier release notes start
+
+0.2.0 (2018-03-10)
+==================
+
+Features
+--------
+
+- Add a new scheduler parameter for control pending jobs size. (#19)
+
+- Cancelling a task suspended on ``job.wait()`` doesn't cancel inner
+job task but timeout exemption does. (#28)
+
+Bugfixes
+--------
+
+- Fix AttributeError when `@atomic` decorator is used in Class Based Views.
+  (#21)
