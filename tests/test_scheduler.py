@@ -2,6 +2,7 @@ import asyncio
 from unittest import mock
 
 import pytest
+from async_timeout import timeout
 
 
 def test_ctor(scheduler):
@@ -226,6 +227,58 @@ async def test_limit(make_scheduler):
     assert s1.limit == 100
     s2 = await make_scheduler(limit=2)
     assert s2.limit == 2
+
+
+async def test_pending_limit(make_scheduler):
+    s1 = await make_scheduler()
+    assert s1.pending_limit == 0
+    s2 = await make_scheduler(pending_limit=2)
+    assert s2.pending_limit == 2
+
+
+async def test_pending_queue_infinite(make_scheduler):
+    scheduler = await make_scheduler(limit=1)
+
+    async def coro(fut):
+        await fut
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+    fut3 = asyncio.Future()
+
+    await scheduler.spawn(coro(fut1))
+    assert scheduler.pending_count == 0
+
+    await scheduler.spawn(coro(fut2))
+    assert scheduler.pending_count == 1
+
+    await scheduler.spawn(coro(fut3))
+    assert scheduler.pending_count == 2
+
+
+async def test_pending_queue_limit_wait(make_scheduler, loop):
+    scheduler = await make_scheduler(limit=1, pending_limit=1)
+
+    async def coro(fut):
+        await asyncio.sleep(0)
+        await fut
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+    fut3 = asyncio.Future()
+
+    await scheduler.spawn(coro(fut1))
+    assert scheduler.pending_count == 0
+
+    await scheduler.spawn(coro(fut2))
+    assert scheduler.pending_count == 1
+
+    with pytest.raises(asyncio.TimeoutError):
+        # try to wait for 1 sec to add task to pending queue
+        with timeout(1, loop=loop):
+            await scheduler.spawn(coro(fut3))
+
+    assert scheduler.pending_count == 1
 
 
 async def test_scheduler_concurrency_limit(make_scheduler):

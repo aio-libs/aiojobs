@@ -1,5 +1,4 @@
 import asyncio
-from collections import deque
 
 from ._job import Job
 
@@ -14,16 +13,17 @@ else:  # pragma: no cover
 
 
 class Scheduler(*bases):
-    def __init__(self, *, close_timeout, limit,
+    def __init__(self, *, close_timeout, limit, pending_limit,
                  exception_handler, loop):
         self._loop = loop
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
+        self._pending_limit = pending_limit or 0  # the queue size is infinite
         self._exception_handler = exception_handler
         self._failed_tasks = asyncio.Queue(loop=loop)
         self._failed_task = loop.create_task(self._wait_failed())
-        self._pending = deque()
+        self._pending = asyncio.Queue(maxsize=pending_limit, loop=loop)
         self._closed = False
 
     def __iter__(self):
@@ -49,16 +49,20 @@ class Scheduler(*bases):
         return self._limit
 
     @property
+    def pending_limit(self):
+        return self._pending_limit
+
+    @property
     def close_timeout(self):
         return self._close_timeout
 
     @property
     def active_count(self):
-        return len(self._jobs) - len(self._pending)
+        return len(self._jobs) - self._pending.qsize()
 
     @property
     def pending_count(self):
-        return len(self._pending)
+        return self._pending.qsize()
 
     @property
     def closed(self):
@@ -77,7 +81,8 @@ class Scheduler(*bases):
         if should_start:
             job._start()
         else:
-            self._pending.append(job)
+            # wait for free slot in queue
+            await self._pending.put(job)
         return job
 
     async def close(self):
@@ -89,7 +94,8 @@ class Scheduler(*bases):
         if jobs:
             # cleanup pending queue
             # all job will be started on closing
-            self._pending.clear()
+            while not self._pending.empty():
+                self._pending.get_nowait()
             await asyncio.gather(
                 *[job._close(self._close_timeout) for job in jobs],
                 loop=self._loop, return_exceptions=True)
@@ -110,16 +116,16 @@ class Scheduler(*bases):
 
     def _done(self, job):
         self._jobs.discard(job)
-        if not self._pending:
+        if not self.pending_count:
             return
         # No pending jobs when limit is None
         # Safe to subtract.
         ntodo = self._limit - self.active_count
         i = 0
         while i < ntodo:
-            if not self._pending:
+            if not self.pending_count:
                 return
-            new_job = self._pending.popleft()
+            new_job = self._pending.get_nowait()
             if new_job.closed:
                 continue
             new_job._start()
