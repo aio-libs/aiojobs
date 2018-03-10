@@ -105,3 +105,4 @@ ENV/
 
 .flake
 .install-deps
+.develop
