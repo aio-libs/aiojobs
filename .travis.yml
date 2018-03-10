@@ -54,3 +54,11 @@ jobs:
         password: $PYPI_PASSWD
         distributions: sdist bdist_wheel
         skip_upload_docs: true
+
+
+stages:
+  - name: doc
+  - name: test
+  - name: deploy
+    # This will prevent deploy unless it's a tagged commit:
+    if: tag IS present
