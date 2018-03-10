@@ -43,17 +43,24 @@ class Job:
     def closed(self):
         return self._closed
 
+    async def _do_wait(self, timeout):
+        with async_timeout.timeout(timeout=timeout, loop=self._loop):
+            # TODO: add a test for waiting for a pending coro
+            await self._started
+            return await self._task
+
     async def wait(self, *, timeout=None):
         self._explicit = True
         scheduler = self._scheduler
         try:
-            with async_timeout.timeout(timeout=timeout, loop=self._loop):
-                # TODO: add a test for waiting for a pending coro
-                await self._started
-                return await self._task
-        except Exception as exc:
+            return await asyncio.shield(self._do_wait(timeout),
+                                        loop=self._loop)
+        except asyncio.CancelledError:
+            # Don't stop inner coroutine on explicit cancel
+            raise
+        except Exception:
             await self._close(scheduler.close_timeout)
-            raise exc
+            raise
 
     async def close(self, *, timeout=None):
         self._explicit = True

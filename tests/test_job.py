@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import suppress
 from unittest import mock
 
 import pytest
@@ -171,3 +172,25 @@ async def test_job_await_pending(make_scheduler, loop):
     loop.call_later(0.01, fut.set_result, None)
     ret = await job.wait()
     assert ret == 1
+
+
+async def test_job_cancel_awaiting(make_scheduler, loop):
+    scheduler = await make_scheduler()
+
+    fut = loop.create_future()
+
+    async def f():
+        await fut
+
+    job = await scheduler.spawn(f())
+
+    task = loop.create_task(job.wait())
+    assert job.active, job
+    await asyncio.sleep(0.05, loop=loop)
+    assert job.active, job
+    task.cancel()
+    with suppress(asyncio.CancelledError):
+        await task
+
+    assert not fut.cancelled()
+    fut.set_result(None)
