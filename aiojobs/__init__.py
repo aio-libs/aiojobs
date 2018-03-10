@@ -1,3 +1,11 @@
+"""Jobs scheduler for managing background task (asyncio).
+
+The library gives controlled way for scheduling background tasks for
+asyncio applications.
+
+"""
+
+
 __version__ = '0.1.0'
 
 import asyncio
