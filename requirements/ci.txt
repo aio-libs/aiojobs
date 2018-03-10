@@ -2,4 +2,3 @@ pytest-aiohttp
 pytest-cov
 flake8
 isort
--e .
