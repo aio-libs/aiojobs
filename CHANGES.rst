@@ -14,6 +14,11 @@ Changelog
 
 .. towncrier release notes start
 
+0.2.1 (2018-03-10)
+==================
+
+- Add missing decription file
+
 0.2.0 (2018-03-10)
 ==================
 
