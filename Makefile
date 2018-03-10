@@ -12,7 +12,7 @@ isort:
 	@flit install --symlink
 	@touch .develop
 
-.flake: .install-deps $(shell find aiojobs -type f) \
+.flake: .install-deps .develop $(shell find aiojobs -type f) \
                       $(shell find tests -type f)
 	@flake8 .
 	@isort -rc -c
