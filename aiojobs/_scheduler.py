@@ -68,9 +68,6 @@ class Scheduler(*bases):
         return self._closed
 
     async def spawn(self, coro):
-        # The method is not a coroutine
-        # but let's keep it async for sake of future changes
-        # Migration from function to coroutine is a pain
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
         job = Job(coro, self, self._loop)
