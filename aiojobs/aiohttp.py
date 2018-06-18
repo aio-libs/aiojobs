@@ -26,12 +26,14 @@ async def spawn(request, coro):
 
 def atomic(coro):
     @wraps(coro)
-    async def wrapper(request):
-        if isinstance(request, View):
+    async def wrapper(request_view):
+        if isinstance(request_view, View):
             # Class Based View decorated.
-            request = request.request
+            request = request_view.request
+        else:
+            request = request_view
 
-        job = await spawn(request, coro(request))
+        job = await spawn(request, coro(request_view))
         return await job.wait()
     return wrapper
 
