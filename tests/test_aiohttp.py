@@ -70,11 +70,14 @@ async def test_atomic(test_client):
 
 async def test_atomic_from_view(test_client):
     app = web.Application()
+    view_response = "Test response"
 
     class MyView(web.View):
+        response_text = view_response
+
         @atomic
         async def get(self):
-            return web.Response()
+            return web.Response(text=self.response_text)
 
     app.router.add_route("*", "/", MyView)
     aiojobs_setup(app)
@@ -82,6 +85,7 @@ async def test_atomic_from_view(test_client):
     client = await test_client(app)
     resp = await client.get('/')
     assert resp.status == 200
+    assert await resp.text() == view_response
 
     scheduler = get_scheduler_from_app(app)
 
