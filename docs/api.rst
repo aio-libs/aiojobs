@@ -260,5 +260,5 @@ Helpers
           return web.Response()
 
       async def handler(request):
-          job = await spawn(request, coro(request))
+          job = await spawn(request, inner(request))
           return await job.wait()
