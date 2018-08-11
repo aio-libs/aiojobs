@@ -9,7 +9,7 @@ __all__ = ('setup', 'spawn', 'get_scheduler', 'get_scheduler_from_app',
 
 
 def get_scheduler(request):
-    scheduler = get_scheduler_from_app(request.app)
+    scheduler = get_scheduler_from_request(request)
     if scheduler is None:
         raise RuntimeError(
             "Call aiojobs.aiohttp.setup() on application initialization")
@@ -18,6 +18,10 @@ def get_scheduler(request):
 
 def get_scheduler_from_app(app):
     return app.get('AIOJOBS_SCHEDULER')
+
+
+def get_scheduler_from_request(request):
+    return request.config_dict.get('AIOJOBS_SCHEDULER')
 
 
 async def spawn(request, coro):
