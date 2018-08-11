@@ -110,6 +110,29 @@ async def test_nested_application(test_client):
     assert resp.status == 200
 
 
+async def test_nested_application_separate_scheduler(test_client):
+    app = web.Application()
+    aiojobs_setup(app)
+
+    app2 = web.Application()
+    aiojobs_setup(app2)
+
+    class MyView(web.View):
+        async def get(self):
+            assert get_scheduler_from_request(self.request) !=\
+                get_scheduler_from_app(app)
+            assert get_scheduler_from_request(self.request) ==\
+                get_scheduler_from_app(app2)
+            return web.Response()
+
+    app2.router.add_route("*", "/", MyView)
+    app.add_subapp("/sub/", app2)
+
+    client = await test_client(app)
+    resp = await client.get("/sub/")
+    assert resp.status == 200
+
+
 async def test_nested_application_not_set(test_client):
     app = web.Application()
     app2 = web.Application()
