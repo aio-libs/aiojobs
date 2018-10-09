@@ -1,4 +1,4 @@
 -r ci.txt
 -r doc.txt
 pytest-sugar==0.9.1
-flit==1.1
+flit==1.2.1
