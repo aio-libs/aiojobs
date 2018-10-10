@@ -1,0 +1,1 @@
+Fix AttributeError when calling wait() or close() on failed job.

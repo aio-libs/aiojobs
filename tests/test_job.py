@@ -194,3 +194,37 @@ async def test_job_cancel_awaiting(make_scheduler, loop):
 
     assert not fut.cancelled()
     fut.set_result(None)
+
+
+async def test_job_wait_closed(make_scheduler):
+    scheduler = await make_scheduler(limit=1)
+    fut = asyncio.Future()
+
+    async def coro1():
+        raise RuntimeError()
+
+    async def coro2():
+        fut.set_result(None)
+
+    job = await scheduler.spawn(coro1())
+    await scheduler.spawn(coro2())
+
+    await fut
+    await job.wait()
+
+
+async def test_job_close_closed(make_scheduler):
+    scheduler = await make_scheduler(limit=1)
+    fut = asyncio.Future()
+
+    async def coro1():
+        raise RuntimeError()
+
+    async def coro2():
+        fut.set_result(None)
+
+    job = await scheduler.spawn(coro1())
+    await scheduler.spawn(coro2())
+
+    await fut
+    await job.close()

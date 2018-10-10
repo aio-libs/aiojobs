@@ -50,6 +50,8 @@ class Job:
             return await self._task
 
     async def wait(self, *, timeout=None):
+        if self._closed:
+            return
         self._explicit = True
         scheduler = self._scheduler
         try:
@@ -63,14 +65,14 @@ class Job:
             raise
 
     async def close(self, *, timeout=None):
+        if self._closed:
+            return
         self._explicit = True
         if timeout is None:
             timeout = self._scheduler.close_timeout
         await self._close(timeout)
 
     async def _close(self, timeout):
-        if self._closed:
-            return
         self._closed = True
         if self._task is None:
             # the task is closed immediately without actual execution
