@@ -3,7 +3,8 @@ import asyncio
 import pytest
 from aiohttp import web
 
-from aiojobs.aiohttp import atomic, get_scheduler, get_scheduler_from_app
+from aiojobs.aiohttp import (atomic, get_scheduler, get_scheduler_from_app,
+                             get_scheduler_from_request)
 from aiojobs.aiohttp import setup as aiojobs_setup
 from aiojobs.aiohttp import spawn
 
@@ -87,3 +88,63 @@ async def test_atomic_from_view(test_client):
 
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
+
+
+async def test_nested_application(test_client):
+    app = web.Application()
+    aiojobs_setup(app)
+
+    app2 = web.Application()
+
+    class MyView(web.View):
+        async def get(self):
+            assert get_scheduler_from_request(self.request) ==\
+                get_scheduler_from_app(app)
+            return web.Response()
+
+    app2.router.add_route("*", "/", MyView)
+    app.add_subapp("/sub/", app2)
+
+    client = await test_client(app)
+    resp = await client.get("/sub/")
+    assert resp.status == 200
+
+
+async def test_nested_application_separate_scheduler(test_client):
+    app = web.Application()
+    aiojobs_setup(app)
+
+    app2 = web.Application()
+    aiojobs_setup(app2)
+
+    class MyView(web.View):
+        async def get(self):
+            assert get_scheduler_from_request(self.request) !=\
+                get_scheduler_from_app(app)
+            assert get_scheduler_from_request(self.request) ==\
+                get_scheduler_from_app(app2)
+            return web.Response()
+
+    app2.router.add_route("*", "/", MyView)
+    app.add_subapp("/sub/", app2)
+
+    client = await test_client(app)
+    resp = await client.get("/sub/")
+    assert resp.status == 200
+
+
+async def test_nested_application_not_set(test_client):
+    app = web.Application()
+    app2 = web.Application()
+
+    class MyView(web.View):
+        async def get(self):
+            assert get_scheduler_from_request(self.request) is None
+            return web.Response()
+
+    app2.router.add_route("*", "/", MyView)
+    app.add_subapp("/sub/", app2)
+
+    client = await test_client(app)
+    resp = await client.get("/sub/")
+    assert resp.status == 200

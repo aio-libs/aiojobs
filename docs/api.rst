@@ -218,7 +218,8 @@ jobs.
 
 .. cofunction:: spawn(request, coro)
 
-   Spawn a new job using scheduler registered into ``request.app``.
+   Spawn a new job using scheduler registered into ``request.app``,
+   or a parent :attr:`aiohttp.web.Application`.
 
    * *request* -- :class:`aiohttp.web.Request` given from :term:`web-handler`
    * *coro* a coroutine to be executed inside a new job
@@ -232,7 +233,8 @@ Helpers
 
    Return a scheduler from request, raise :exc:`RuntimeError` if
    scheduler was not registered on application startup phase (see
-   :func:`setup`).
+   :func:`setup`). The scheduler will be resolved from the current
+   or any parent :attr:`aiohttp.web.Application`, if available.
 
 
 .. function:: get_scheduler_from_app(app)
@@ -240,6 +242,12 @@ Helpers
    Return a scheduler from aiohttp application or ``None`` if
    scheduler was not registered on application startup phase (see
    :func:`setup`).
+
+.. function:: get_scheduler_from_request(request)
+
+   Return a scheduler from aiohttp request or ``None`` if
+   scheduler was not registered on any application in the
+   hierarchy of parent applications (see :func:`setup`)
 
 .. decorator:: atomic
 
