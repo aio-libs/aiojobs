@@ -4,8 +4,6 @@ import asyncio
 import pytest
 from sanic import Sanic, response
 
-from aiojobs.sanic import (get_scheduler, get_scheduler_from_app,
-                             get_scheduler_from_request)
 from aiojobs.sanic import setup as aiojobs_setup
 from aiojobs.sanic import spawn
 
