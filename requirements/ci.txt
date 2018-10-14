@@ -2,3 +2,4 @@ pytest-aiohttp==0.3.0
 pytest-cov==2.6.0
 flake8==3.5.0
 isort==4.3.4
+pytest-sanic==0.1.13
