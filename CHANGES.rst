@@ -14,6 +14,11 @@ Changelog
 
 .. towncrier release notes start
 
+0.2.2 (2018-10-17)
+==================
+
+- Fix AttributeError when calling ``wait()`` or ``close()`` on failed job (#64)
+
 0.2.1 (2018-03-10)
 ==================
 
