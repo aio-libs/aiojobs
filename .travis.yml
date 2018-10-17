@@ -45,8 +45,8 @@ jobs:
     - stage: deploy
       <<: *_skip_steps
       env:
-        - FLIT_USERNAME=andrew.svetlov
-        - secure: "UlJhfAPb0IWwFs/BZoiFHKxgoB2S1vkUNyjw8MXldUNPalR5eGh7ZXR+DiZpLGEl92vt4V7cpLqL9oY8GQeN6xczwipd/sc93ReG1qvGje/G3g7E5O3hIBio6ZXuO9Bsg9Xk6pQgIsnF6s9nZlu6rX/+Ru2U9n5CfeiznoTtfOUDc4I7JWdPbv7ks/RCYK/HQMrpDh55xGYH/6cSbKRVImCkehmg7bFprApn0RfZu3uuOYs89yjYfjNQxPoWlVF0yjAHJa3opdHzR1SlifTZotgSZwN5VWVV1XPqsrfdhTVYuziXsLmekL6jPbAJ4S85omG84Kns3bf0osWWTJ/E4CGrIQTAsz78yPaM/yFg/rwK3Zy4568y9FN+hIjVe/SyYTtSBWFgbZIYeIry2QFnN910TJ33t4qFyaw763rfHNGEZd1sh5w24Jh1JmhGZUk1QyGOk3GZWhZkaMF8qqL6xWnkPy+FKauXKeYaq73nhU4zCswDw9fVpr22Dz27MYh0hEyVLy+30Iaxab8x0wUQdlouTjPacgRUHkH1itsN6xuMOnisvdY8foVee/yDq9qHI8dkUhCtbNgT3rK03LYoIDFOiay4vxGEkhtTAdrpoiDVf7Py7jIezdt8tlqlAFsZOSi6z/1YRlNBhgloTh9Mh/eSKQbCWamNudmjolmuQRA="  # FLIT_PASSWORD
+        - FLIT_USERNAME=aio-libs-bot
+        - secure: "ArVMVqEqyWW1MD5iRNSiALM3Ry2Su2fPeVEgvjH2FRI7ohOzMTX1ALb0XAVNR/A03ypEJq44pWn568iBCi5ReHzgwj0YlQFxFJ9yvGDnILstYkGxmaSk9tM2ztMvRr6q4Kzf03EJ9sxBNb/UmFXAUBYYk63aRXIMPwul3hRVQGhlj9gLwWXDIcYN3D1c6jIBulYRolgMhEQdrVNCZlC0GA6x+fuU8pLIQ6RWZsHAS/QkRfOOwNAKKpJxrO6JaJu7V/VGEEZTelccxbsJO1Q+amwlISVqiOHd0FcnAozdpoaj6ozd4XBIn8yi+cs+fIBzJs+I5Ul7V8TTyEBRrGkx5xaY01xIgMkq7iAUDgtBuqQMB/Gihx3OSVzklCZhB1SR1VjK5K90qd1RevgPhDGEPQS2dzSNVFTTm1EtNZD8NxoZoUtxRg6gvuMva2mJl2QFTBo9QYmTFC1sGdNG6ugo14o1hXH0rY8TRN/LJ9H78vr5ACn/tY9NS9psqN4QOU3NHOtZJwTUXdMfeBpBx+4Ob+k7XLmNwlk1/yOBlDG/mjjApc34KTnJS0Xrnzmr1sjk6q4T650ENuvvvIsu7jbYOqZ+idstzh3nkHmraALHwkq7tnNHGKO5EG56ua6ktcnDD/GesHBtFY5iSr5v0nnFPwkeSMdVKeZw6vK7mYWWOYU="  # FLIT_PASSWORD
       install:
         - pip install -r requirements/deploy.txt
       script:
