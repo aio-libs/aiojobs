@@ -136,7 +136,7 @@ class Scheduler(*bases):
                 return  # closing
             try:
                 await task  # should raise exception
-            except Exception as exc:
+            except Exception:
                 # Cleanup a warning
                 # self.call_exception_handler() is already called
                 # by Job._add_done_callback
