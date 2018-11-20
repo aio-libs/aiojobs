@@ -23,7 +23,7 @@ def make_scheduler(loop):
     schedulers = []
 
     async def maker(**kwargs):
-        ret = await(create_scheduler(**kwargs))
+        ret = await create_scheduler(**kwargs)
         schedulers.append(ret)
         return ret
 
