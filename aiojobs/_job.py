@@ -10,6 +10,7 @@ class Job:
     _closed = False
     _explicit = False
     _task = None
+    _result = None
 
     def __init__(self, coro, scheduler, loop):
         self._loop = loop
@@ -51,7 +52,7 @@ class Job:
 
     async def wait(self, *, timeout=None):
         if self._closed:
-            return
+            return self._result
         self._explicit = True
         scheduler = self._scheduler
         try:
@@ -114,6 +115,8 @@ class Job:
         scheduler._done(self)
         try:
             exc = task.exception()
+            if exc is None:
+                self._result = task.result()
         except asyncio.CancelledError:
             pass
         else:

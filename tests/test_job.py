@@ -94,6 +94,7 @@ async def test_job_wait_result(make_scheduler):
         return 1
 
     job = await scheduler.spawn(coro())
+    await asyncio.sleep(1)
     ret = await job.wait()
     assert ret == 1
     assert not handler.called
@@ -170,6 +171,7 @@ async def test_job_await_pending(make_scheduler, loop):
     job = await scheduler.spawn(coro2())
 
     loop.call_later(0.01, fut.set_result, None)
+    await asyncio.sleep(1)
     ret = await job.wait()
     assert ret == 1
 
