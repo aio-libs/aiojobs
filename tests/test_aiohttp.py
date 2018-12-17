@@ -9,7 +9,7 @@ from aiojobs.aiohttp import setup as aiojobs_setup
 from aiojobs.aiohttp import spawn
 
 
-async def test_plugin(test_client):
+async def test_plugin(aiohttp_client):
     job = None
 
     async def coro():
@@ -26,7 +26,7 @@ async def test_plugin(test_client):
     app.router.add_get('/', handler)
     aiojobs_setup(app)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get('/')
     assert resp.status == 200
 
@@ -35,7 +35,7 @@ async def test_plugin(test_client):
     assert job.closed
 
 
-async def test_no_setup(test_client):
+async def test_no_setup(aiohttp_client):
     async def handler(request):
         with pytest.raises(RuntimeError):
             get_scheduler(request)
@@ -44,12 +44,12 @@ async def test_no_setup(test_client):
     app = web.Application()
     app.router.add_get('/', handler)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get('/')
     assert resp.status == 200
 
 
-async def test_atomic(test_client):
+async def test_atomic(aiohttp_client):
     @atomic
     async def handler(request):
         await asyncio.sleep(0)
@@ -59,7 +59,7 @@ async def test_atomic(test_client):
     app.router.add_get('/', handler)
     aiojobs_setup(app)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get('/')
     assert resp.status == 200
 
@@ -69,7 +69,7 @@ async def test_atomic(test_client):
     assert scheduler.pending_count == 0
 
 
-async def test_atomic_from_view(test_client):
+async def test_atomic_from_view(aiohttp_client):
     app = web.Application()
 
     class MyView(web.View):
@@ -80,7 +80,7 @@ async def test_atomic_from_view(test_client):
     app.router.add_route("*", "/", MyView)
     aiojobs_setup(app)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get('/')
     assert resp.status == 200
 
@@ -90,7 +90,7 @@ async def test_atomic_from_view(test_client):
     assert scheduler.pending_count == 0
 
 
-async def test_nested_application(test_client):
+async def test_nested_application(aiohttp_client):
     app = web.Application()
     aiojobs_setup(app)
 
@@ -105,12 +105,12 @@ async def test_nested_application(test_client):
     app2.router.add_route("*", "/", MyView)
     app.add_subapp("/sub/", app2)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get("/sub/")
     assert resp.status == 200
 
 
-async def test_nested_application_separate_scheduler(test_client):
+async def test_nested_application_separate_scheduler(aiohttp_client):
     app = web.Application()
     aiojobs_setup(app)
 
@@ -128,12 +128,12 @@ async def test_nested_application_separate_scheduler(test_client):
     app2.router.add_route("*", "/", MyView)
     app.add_subapp("/sub/", app2)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get("/sub/")
     assert resp.status == 200
 
 
-async def test_nested_application_not_set(test_client):
+async def test_nested_application_not_set(aiohttp_client):
     app = web.Application()
     app2 = web.Application()
 
@@ -145,6 +145,6 @@ async def test_nested_application_not_set(test_client):
     app2.router.add_route("*", "/", MyView)
     app.add_subapp("/sub/", app2)
 
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     resp = await client.get("/sub/")
     assert resp.status == 200
