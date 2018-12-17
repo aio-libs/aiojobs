@@ -75,6 +75,7 @@ async def test_atomic_from_view(aiohttp_client):
     class MyView(web.View):
         @atomic
         async def get(self):
+            assert isinstance(self, MyView)
             return web.Response()
 
     app.router.add_route("*", "/", MyView)
