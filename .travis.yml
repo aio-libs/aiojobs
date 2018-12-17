@@ -35,6 +35,13 @@ _helpers:
 
 jobs:
   include:
+    # 3.7 needs Xenial image
+    # https://github.com/travis-ci/travis-ci/issues/9069
+    - stage: test
+      python: "3.7"
+      dist: xenial
+      sudo: true
+
     - stage: doc
       <<: *_skip_steps
       install:
