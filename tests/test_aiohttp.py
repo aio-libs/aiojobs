@@ -91,6 +91,65 @@ async def test_atomic_from_view(aiohttp_client):
     assert scheduler.pending_count == 0
 
 
+async def test_atomic_from_method_view(aiohttp_client):
+    app = web.Application()
+
+    class UserRelated(object):
+        @atomic
+        async def create_user_handler(self, request):
+            assert isinstance(self, UserRelated)
+            data = await request.json()
+            return web.json_response(data)
+
+    class UserRelatedStatic(object):
+        @staticmethod
+        @atomic
+        async def create_user_handler(request):
+            data = await request.json()
+            return web.json_response(data)
+
+    app.router.add_post("/", UserRelated().create_user_handler)
+    app.router.add_post("/staticmethod", UserRelatedStatic.create_user_handler)
+    aiojobs_setup(app)
+
+    client = await aiohttp_client(app)
+
+    user = {'id': '1', 'name': 'Foo'}
+
+    resp = await client.post('/', json=user)
+    assert resp.status == 200
+
+    resp_staticmethod = await client.post('/', json=user)
+    assert resp_staticmethod.status == 200
+
+    scheduler = get_scheduler_from_app(app)
+
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert user == await resp.json()
+    assert user == await resp_staticmethod.json()
+
+
+async def test_atomic_without_request(aiohttp_client):
+    async def handler(request):
+        @atomic
+        async def coro():
+            await asyncio.sleep(0)
+
+        with pytest.raises(ValueError):
+            await coro()
+
+        return web.Response()
+
+    app = web.Application()
+    app.router.add_get('/', handler)
+    aiojobs_setup(app)
+
+    client = await aiohttp_client(app)
+    resp = await client.get('/')
+    assert resp.status == 200
+
+
 async def test_nested_application(aiohttp_client):
     app = web.Application()
     aiojobs_setup(app)

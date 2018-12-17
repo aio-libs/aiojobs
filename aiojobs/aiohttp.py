@@ -1,6 +1,7 @@
 from functools import wraps
+from itertools import chain
 
-from aiohttp.web import View
+from aiohttp.web import Request, View
 
 from . import create_scheduler
 
@@ -28,15 +29,23 @@ async def spawn(request, coro):
     return await get_scheduler(request).spawn(coro)
 
 
+def _find_request(*args, **kwargs):
+    for a in chain(args, kwargs.values()):
+        if isinstance(a, Request):
+            return a
+        elif isinstance(a, View):
+            return a.request
+
+    raise ValueError('Request instance not found')
+
+
 def atomic(coro):
     @wraps(coro)
-    async def wrapper(request):
-        if isinstance(request, View):
-            # Class Based View decorated.
-            request = request.request
-
-        job = await spawn(request, coro(request))
+    async def wrapper(*args, **kwargs):
+        request = _find_request(*args, **kwargs)
+        job = await spawn(request, coro(*args, **kwargs))
         return await job.wait()
+
     return wrapper
 
 
