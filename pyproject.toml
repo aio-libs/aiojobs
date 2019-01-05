@@ -7,7 +7,7 @@ module = "aiojobs"
 author = "Andrew Svetlov"
 author-email = "andrew.svetlov@gmail.com"
 home-page = "https://github.com/aio-libs/aiojobs"
-requires=["aiohttp >= 3.2.0"]
+requires=[]
 requires-python=">=3.5"
 description-file="README.rst"
 classifiers = [
@@ -21,6 +21,11 @@ classifiers = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Topic :: Software Development",
+]
+
+[tool.flit.metadata.requires-extra]
+aiohttp = [
+    "aiohttp >= 3.2.0"
 ]
 
 [tool.towncrier]
