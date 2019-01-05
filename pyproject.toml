@@ -1,5 +1,5 @@
 [build-system]
-requires = ["flit"]
+requires = ["flit >= 1.1"]
 build-backend = "flit.buildapi"
 
 [tool.flit.metadata]
@@ -7,19 +7,25 @@ module = "aiojobs"
 author = "Andrew Svetlov"
 author-email = "andrew.svetlov@gmail.com"
 home-page = "https://github.com/aio-libs/aiojobs"
-requires=["aiohttp >= 3.2.0"]
+requires=[]
 requires-python=">=3.5"
 description-file="README.rst"
-classifiers = ["License :: OSI Approved :: Apache Software License",
-	       "Development Status :: 4 - Beta",
-	       "Intended Audience :: Developers",
-	       "Framework :: AsyncIO",
-	       "Programming Language :: Python",
-	       "Programming Language :: Python :: 3",
-               "Programming Language :: Python :: 3.5",
-               "Programming Language :: Python :: 3.6",
-               "Programming Language :: Python :: 3.7",
-	       "Topic :: Software Development",
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Software Development",
+]
+
+[tool.flit.metadata.requires-extra]
+aiohttp = [
+    "aiohttp >= 3.2.0"
 ]
 
 [tool.towncrier]
