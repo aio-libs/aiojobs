@@ -1,12 +1,11 @@
-sudo: false
+sudo: required
 language: python
 
 
 python:
   - 3.5
   - 3.6
-  - 3.7-dev
-  # - 'nightly'
+  - 'nightly'
 
 
 os:
