@@ -99,6 +99,26 @@ class Scheduler(*bases):
         self._failed_tasks.put_nowait(None)
         await self._failed_task
 
+    async def join(self, timeout=1, graceful_timeout=1):
+        if self._closed:
+            return
+        self._closed = True  # prevent adding new jobs
+
+        def prepare_job(job):
+            return job.wait(timeout=timeout, graceful_timeout=graceful_timeout,
+                            explicit=False)
+
+        jobs = self._jobs
+        if jobs:
+            while not self._pending.empty():
+                job = self._pending.get_nowait()
+                job._start()
+            await asyncio.gather(*map(prepare_job, jobs),
+                                loop=self._loop, return_exceptions=True)
+            self._jobs.clear()
+        self._failed_tasks.put_nowait(None)
+        await self._failed_task
+
     def call_exception_handler(self, context):
         handler = self._exception_handler
         if handler is None:

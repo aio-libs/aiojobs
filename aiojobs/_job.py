@@ -49,13 +49,26 @@ class Job:
             await self._started
             return await self._task
 
-    async def wait(self, *, timeout=None):
+    async def _do_graceful_wait(self, timeout, graceful_timeout):
+        scheduler = self._scheduler
+        total_timeout = timeout + graceful_timeout
+        try:
+            with async_timeout.timeout(timeout=total_timeout, loop=self._loop):
+                await self._do_wait(timeout)
+        except asyncio.TimeoutError as exc:
+            self._report_timeout(exc, scheduler)
+            raise
+
+    async def wait(self, *, timeout=None, graceful_timeout=None, explicit=True):
         if self._closed:
             return
-        self._explicit = True
+        self._explicit = explicit
         scheduler = self._scheduler
         try:
-            return await asyncio.shield(self._do_wait(timeout),
+            if self._explicit:
+                return await asyncio.shield(self._do_wait(timeout),
+                                            loop=self._loop)
+            return await asyncio.shield(self._do_graceful_wait(timeout, graceful_timeout),
                                         loop=self._loop)
         except asyncio.CancelledError:
             # Don't stop inner coroutine on explicit cancel
@@ -92,12 +105,7 @@ class Job:
         except asyncio.TimeoutError as exc:
             if self._explicit:
                 raise
-            context = {'message': "Job closing timed out",
-                       'job': self,
-                       'exception': exc}
-            if self._source_traceback is not None:
-                context['source_traceback'] = self._source_traceback
-            scheduler.call_exception_handler(context)
+            self._report_timeout(exc, scheduler)
         except Exception as exc:
             if self._explicit:
                 raise
@@ -130,3 +138,11 @@ class Job:
         if self._source_traceback is not None:
             context['source_traceback'] = self._source_traceback
         self._scheduler.call_exception_handler(context)
+
+    def _report_timeout(self, exc, scheduler):
+        context = {'message': "Job closing timed out",
+                   'job': self,
+                   'exception': exc}
+        if self._source_traceback is not None:
+            context['source_traceback'] = self._source_traceback
+        scheduler.call_exception_handler(context)

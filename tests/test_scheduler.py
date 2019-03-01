@@ -105,6 +105,110 @@ async def test_exception_on_close(make_scheduler, loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
+async def test_join(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler, limit=1)
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+
+    async def coro1():
+        await asyncio.sleep(0.1, loop=loop)
+        fut1.set_result(None)
+
+    async def coro2():
+        fut2.set_result(None)
+
+    await scheduler.spawn(coro1())
+    await scheduler.spawn(coro2())
+
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 1
+
+    await scheduler.join()
+
+    assert len(scheduler) == 0
+    assert fut1.done()
+    assert fut2.done()
+    assert not exc_handler.called
+
+
+async def test_exception_on_join(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler, limit=1)
+    exc = RuntimeError()
+
+    fut1 = asyncio.Future()
+
+    async def coro1():
+        await asyncio.sleep(0.1, loop=loop)
+        fut1.set_result(None)
+
+    async def coro2():
+        raise exc
+
+    await scheduler.spawn(coro1())
+    job = await scheduler.spawn(coro2())
+    await scheduler.join()
+
+    assert len(scheduler) == 0
+    assert fut1.done()
+
+    expect = {'exception': exc,
+              'job': job,
+              'message': 'Job processing failed'}
+    if loop.get_debug():
+        expect['source_traceback'] = mock.ANY
+    exc_handler.assert_called_with(scheduler, expect)
+
+
+async def test_timeout_on_join(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler, limit=1)
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+    fut3 = asyncio.Future()
+    fut4 = asyncio.Future()
+    fut5 = asyncio.Future()
+
+    async def coro1():
+        await asyncio.sleep(0.1, loop=loop)
+        fut1.set_result(None)
+
+    async def coro2():
+        try:
+            await fut2
+        except asyncio.CancelledError:
+            await asyncio.sleep(0.1, loop=loop)
+            fut3.set_result(None)
+
+    async def coro3():
+        try:
+            await fut4
+        except asyncio.CancelledError:
+            await fut5
+
+    await scheduler.spawn(coro1())
+    await scheduler.spawn(coro2())
+    job = await scheduler.spawn(coro3())
+    await scheduler.join(timeout=0.2, graceful_timeout=0.2)
+
+    assert len(scheduler) == 0
+    assert fut1.done()
+    assert fut2.cancelled()
+    assert fut3.done()
+    assert fut4.cancelled()
+    assert fut5.cancelled()
+
+    expect = {'message': 'Job closing timed out',
+              'job': job,
+              'exception': mock.ANY}
+    if loop.get_debug():
+        expect['source_traceback'] = mock.ANY
+    exc_handler.assert_called_with(scheduler, expect)
+
+
 async def test_close_timeout(make_scheduler):
     s1 = await make_scheduler()
     assert s1.close_timeout == 0.1
