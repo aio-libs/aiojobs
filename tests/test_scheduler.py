@@ -133,6 +133,17 @@ async def test_join(make_scheduler, loop):
     assert not exc_handler.called
 
 
+async def test_join_on_closed(make_scheduler, loop):
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler)
+
+    assert not scheduler._closed
+    await scheduler.join()
+    assert scheduler._closed
+    await scheduler.join()
+    assert not exc_handler.called
+
+
 async def test_exception_on_join(make_scheduler, loop):
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler, limit=1)
