@@ -113,8 +113,9 @@ class Scheduler(*bases):
             while not self._pending.empty():
                 job = self._pending.get_nowait()
                 job._start()
-            await asyncio.gather(*map(prepare_job, jobs),
-                                loop=self._loop, return_exceptions=True)
+            await asyncio.gather(
+                *map(prepare_job, jobs),
+                loop=self._loop, return_exceptions=True)
             self._jobs.clear()
         self._failed_tasks.put_nowait(None)
         await self._failed_task

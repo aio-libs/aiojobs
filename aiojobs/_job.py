@@ -59,7 +59,8 @@ class Job:
             self._report_timeout(exc, scheduler)
             raise
 
-    async def wait(self, *, timeout=None, graceful_timeout=None, explicit=True):
+    async def wait(self, *, timeout=None, graceful_timeout=None,
+                   explicit=True):
         if self._closed:
             return
         self._explicit = explicit
@@ -68,8 +69,9 @@ class Job:
             if self._explicit:
                 return await asyncio.shield(self._do_wait(timeout),
                                             loop=self._loop)
-            return await asyncio.shield(self._do_graceful_wait(timeout, graceful_timeout),
-                                        loop=self._loop)
+            return await asyncio.shield(
+                self._do_graceful_wait(timeout, graceful_timeout),
+                loop=self._loop)
         except asyncio.CancelledError:
             # Don't stop inner coroutine on explicit cancel
             raise
