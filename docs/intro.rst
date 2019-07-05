@@ -57,7 +57,7 @@ There is simple usage example::
 
    scheduler = await aiojobs.create_scheduler()
 
-   job = scheduler.spawn(f())
+   job = await scheduler.spawn(f())
 
    await scheduler.close()
 
