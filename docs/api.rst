@@ -98,7 +98,7 @@ Scheduler
 
       Return a new :class:`Job` object.
 
-      The job might be started immediately of pushed into pending list
+      The job might be started immediately or pushed into pending list
       if concurrency :attr:`limit` exceeded.
 
       If :attr:`pending_count` is greater than :attr:`pending_limit`
