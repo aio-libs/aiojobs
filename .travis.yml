@@ -5,6 +5,7 @@ language: python
 python:
   - 3.5
   - 3.6
+  - 3.7
   - 'nightly'
 
 
@@ -33,6 +34,9 @@ _helpers:
   after_success: skip
 
 jobs:
+  allow_failures:
+  - python: nightly
+
   include:
     - stage: doc
       <<: *_skip_steps
