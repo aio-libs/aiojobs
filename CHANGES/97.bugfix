@@ -1,0 +1,2 @@
+Fix scheduler hang when pending limit is reached.
+

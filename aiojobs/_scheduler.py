@@ -73,12 +73,16 @@ class Scheduler(*bases):
         job = Job(coro, self, self._loop)
         should_start = (self._limit is None or
                         self.active_count < self._limit)
-        self._jobs.add(job)
         if should_start:
             job._start()
         else:
-            # wait for free slot in queue
-            await self._pending.put(job)
+            try:
+                # wait for free slot in queue
+                await self._pending.put(job)
+            except asyncio.CancelledError:
+                await job.close()
+                raise
+        self._jobs.add(job)
         return job
 
     async def close(self):

@@ -268,9 +268,11 @@ async def test_pending_queue_limit_wait(make_scheduler, loop):
     fut3 = asyncio.Future()
 
     await scheduler.spawn(coro(fut1))
+    assert scheduler.active_count == 1
     assert scheduler.pending_count == 0
 
     await scheduler.spawn(coro(fut2))
+    assert scheduler.active_count == 1
     assert scheduler.pending_count == 1
 
     with pytest.raises(asyncio.TimeoutError):
@@ -278,6 +280,7 @@ async def test_pending_queue_limit_wait(make_scheduler, loop):
         with timeout(1, loop=loop):
             await scheduler.spawn(coro(fut3))
 
+    assert scheduler.active_count == 1
     assert scheduler.pending_count == 1
 
 
