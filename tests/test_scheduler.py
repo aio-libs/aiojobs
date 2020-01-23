@@ -236,6 +236,22 @@ async def test_pending_limit(make_scheduler):
     assert s2.pending_limit == 2
 
 
+async def test_pending_limit_none(make_scheduler):
+    s = await make_scheduler(pending_limit=None)
+
+    async def coro(fut):
+        await fut
+
+    fut1 = asyncio.Future()
+    fut2 = asyncio.Future()
+
+    await s.spawn(coro(fut1))
+    assert s.pending_count == 0
+
+    await s.spawn(coro(fut2))
+    assert s.pending_count == 0
+
+
 async def test_pending_queue_infinite(make_scheduler):
     scheduler = await make_scheduler(limit=1)
 

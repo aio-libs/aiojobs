@@ -26,6 +26,7 @@ Instantiation
 
    * *pending_limit* is a limit for amount of jobs awaiting starting,
      ``10000`` by default. Use ``0`` for infinite pending queue size.
+     Use ``None`` to ignore pending queue at all
 
    * *exception_handler* is a callable with
      ``handler(scheduler, context)`` signature to log
@@ -70,7 +71,7 @@ Scheduler
 
    .. attribute:: pending_limit
 
-      A limit for *pending* queue size (``0`` for unlimited queue).
+      A limit for *pending* queue size (``0`` for unlimited queue, ``None`` to ignore queue).
 
       See :meth:`spawn` for details.
 
@@ -102,9 +103,9 @@ Scheduler
       if concurrency :attr:`limit` exceeded.
 
       If :attr:`pending_count` is greater than :attr:`pending_limit`
-      and the limit is *finite* (not ``0``) the method suspends
+      and the limit is *finite* (not ``0``) and not ``None`` the method suspends
       execution without scheduling a new job (adding it into pending
-      queue) until penging queue size will be reduced to have a free
+      queue) until pending queue size will be reduced to have a free
       slot.
 
       .. versionchanged:: 0.2
