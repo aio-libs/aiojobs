@@ -22,7 +22,8 @@ class Scheduler(*bases):
         self._exception_handler = exception_handler
         self._failed_tasks = asyncio.Queue(loop=loop)
         self._failed_task = loop.create_task(self._wait_failed())
-        self._pending = asyncio.Queue(maxsize=pending_limit, loop=loop)
+        self._pending_limit = pending_limit
+        self._pending = asyncio.Queue(maxsize=pending_limit or 0, loop=loop)
         self._closed = False
 
     def __iter__(self):
@@ -77,8 +78,9 @@ class Scheduler(*bases):
         if should_start:
             job._start()
         else:
-            # wait for free slot in queue
-            await self._pending.put(job)
+            if self._pending_limit is not None:
+                # wait for free slot in queue
+                await self._pending.put(job)
         return job
 
     async def close(self):
