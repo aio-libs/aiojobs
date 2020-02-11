@@ -1,0 +1,1 @@
+Fix @atomic handlers being cancelled before a graceful shutdown can be completed.
