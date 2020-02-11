@@ -79,8 +79,6 @@ class Job:
             # it prevents a warning like
             # RuntimeWarning: coroutine 'coro' was never awaited
             self._start()
-        if not self._task.done():
-            self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
         try:
@@ -90,6 +88,8 @@ class Job:
         except asyncio.CancelledError:
             pass
         except asyncio.TimeoutError as exc:
+            if not self._task.done():
+                self._task.cancel()
             if self._explicit:
                 raise
             context = {'message': "Job closing timed out",
