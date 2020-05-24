@@ -44,7 +44,7 @@ class Job:
         return self._closed
 
     async def _do_wait(self, timeout):
-        with async_timeout.timeout(timeout=timeout, loop=self._loop):
+        with async_timeout.timeout(timeout=timeout, **self._loop_kwarg()):
             # TODO: add a test for waiting for a pending coro
             await self._started
             return await self._task
@@ -56,7 +56,7 @@ class Job:
         scheduler = self._scheduler
         try:
             return await asyncio.shield(self._do_wait(timeout),
-                                        loop=self._loop)
+                                        **self._loop_kwarg())
         except asyncio.CancelledError:
             # Don't stop inner coroutine on explicit cancel
             raise
@@ -85,7 +85,7 @@ class Job:
         scheduler = self._scheduler
         try:
             with async_timeout.timeout(timeout=timeout,
-                                       loop=self._loop):
+                                       **self._loop_kwarg()):
                 await self._task
         except asyncio.CancelledError:
             pass
@@ -130,3 +130,8 @@ class Job:
         if self._source_traceback is not None:
             context['source_traceback'] = self._source_traceback
         self._scheduler.call_exception_handler(context)
+
+    def _loop_kwarg(self):
+        if sys.version_info >= (3, 8):
+            return {'loop': self._loop}
+        return {}

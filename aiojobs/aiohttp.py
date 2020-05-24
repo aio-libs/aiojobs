@@ -17,11 +17,11 @@ def get_scheduler(request):
 
 
 def get_scheduler_from_app(app):
-    return app.get('AIOJOBS_SCHEDULER')
+    return app.get('AIOJOBS', {}).get('SCHEDULER')
 
 
 def get_scheduler_from_request(request):
-    return request.config_dict.get('AIOJOBS_SCHEDULER')
+    return request.config_dict.get('AIOJOBS', {}).get('SCHEDULER')
 
 
 async def spawn(request, coro):
@@ -42,10 +42,11 @@ def atomic(coro):
 
 def setup(app, **kwargs):
     async def on_startup(app):
-        app['AIOJOBS_SCHEDULER'] = await create_scheduler(**kwargs)
+        app['AIOJOBS']['SCHEDULER'] = await create_scheduler(**kwargs)
 
     async def on_cleanup(app):
-        await app['AIOJOBS_SCHEDULER'].close()
+        await app['AIOJOBS']['SCHEDULER'].close()
 
+    app['AIOJOBS'] = {}
     app.on_startup.append(on_startup)
     app.on_cleanup.append(on_cleanup)
