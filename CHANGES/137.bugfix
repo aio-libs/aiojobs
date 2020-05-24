@@ -1,0 +1,2 @@
+Fix deprecation warnings on Python 3.8 and above due to `asyncio` deprecating
+explicit `loop` arguments.
