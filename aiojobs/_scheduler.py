@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import warnings
 
 from ._job import Job
 
@@ -15,14 +16,21 @@ else:  # pragma: no cover
 
 class Scheduler(*bases):
     def __init__(self, *, close_timeout, limit, pending_limit,
-                 exception_handler, loop):
-        self._loop = loop
+                 exception_handler, loop=None):
+        if loop is None:
+            self._loop = _get_running_loop()
+        else:
+            self._loop = loop
+            if sys.version_info >= (3, 8):
+                warnings.warn("The loop argument is deprecated since Python "
+                              "3.8, and scheduled for removal in Python 3.10.",
+                              DeprecationWarning)
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_task = loop.create_task(self._wait_failed())
-        if sys.version >= (3, 8):
+        self._failed_task = self._loop.create_task(self._wait_failed())
+        if sys.version_info >= (3, 8):
             self._failed_tasks = asyncio.Queue()
             self._pending = asyncio.Queue(maxsize=pending_limit)
         else:
@@ -147,3 +155,13 @@ class Scheduler(*bases):
                 # by Job._add_done_callback
                 # Thus we caught an task exception and we are good citizens
                 pass
+
+
+def _get_running_loop() -> asyncio.AbstractEventLoop:
+    if sys.version_info >= (3, 7):
+        return asyncio.get_running_loop()
+    else:
+        loop = asyncio.get_event_loop()
+        if not loop.is_running():
+            raise RuntimeError("no running event loop")
+        return loop
