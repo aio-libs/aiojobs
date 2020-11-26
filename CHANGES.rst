@@ -14,6 +14,20 @@ Changelog
 
 .. towncrier release notes start
 
+0.3.0 (2020-11-26)
+==================
+
+Features
+--------
+
+- Make aiohttp as extra requirement (#80)
+
+Bugfixes
+--------
+
+- Fix AttributeError when calling wait() or close() on failed job. (#29)
+
+
 0.2.2 (2018-10-17)
 ==================
 
