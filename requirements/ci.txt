@@ -1,5 +1,5 @@
 pytest-aiohttp==0.3.0
 pytest==6.2.2
 pytest-cov==2.11.1
-flake8==3.8.4
+flake8==3.9.0
 isort==5.7.0
