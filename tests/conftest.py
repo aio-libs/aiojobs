@@ -13,7 +13,10 @@ PARAMS = dict(
 
 @pytest.fixture
 def scheduler(loop):
-    ret = Scheduler(loop=loop, **PARAMS)
+    async def maker():
+        return Scheduler(**PARAMS)
+
+    ret = loop.run_until_complete(maker())
     yield ret
     loop.run_until_complete(ret.close())
 

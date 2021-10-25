@@ -1,14 +1,10 @@
 import asyncio
 
 import pytest
-
 from aiohttp import web
-from aiojobs.aiohttp import (
-    atomic,
-    get_scheduler,
-    get_scheduler_from_app,
-    get_scheduler_from_request,
-)
+
+from aiojobs.aiohttp import (atomic, get_scheduler, get_scheduler_from_app,
+                             get_scheduler_from_request)
 from aiojobs.aiohttp import setup as aiojobs_setup
 from aiojobs.aiohttp import spawn
 
