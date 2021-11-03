@@ -8,7 +8,7 @@ author = "Andrew Svetlov"
 author-email = "andrew.svetlov@gmail.com"
 home-page = "https://github.com/aio-libs/aiojobs"
 requires=[
-    "async-timeout >= 4"
+    "async-timeout >= 4.0.0"
 ]
 requires-python=">=3.5"
 description-file="README.rst"
