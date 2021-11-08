@@ -1,7 +1,7 @@
 all: test
 
 isort:
-	isort -rc .
+	isort .
 
 
 .install-deps: $(shell find requirements -type f)
@@ -15,7 +15,7 @@ isort:
 .flake: .install-deps .develop $(shell find aiojobs -type f) \
                       $(shell find tests -type f)
 	@flake8 .
-	@isort -rc -c .
+	@isort -c .
 	@touch .flake
 
 flake: .flake

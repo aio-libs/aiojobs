@@ -4,6 +4,8 @@ from unittest import mock
 import pytest
 from async_timeout import timeout
 
+from aiojobs import Scheduler
+
 
 def test_ctor(scheduler):
     assert len(scheduler) == 0
@@ -381,3 +383,11 @@ async def test_run_after_close(scheduler, loop):
 
     with pytest.warns(RuntimeWarning):
         del coro
+
+
+def test_scheduler_must_be_created_within_running_loop():
+    with pytest.raises(RuntimeError) as exc_info:
+        Scheduler(close_timeout=0, limit=0,
+                  pending_limit=0, exception_handler=None)
+
+    assert exc_info.match("no running event loop")
