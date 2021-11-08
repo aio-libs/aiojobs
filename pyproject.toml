@@ -7,7 +7,9 @@ module = "aiojobs"
 author = "Andrew Svetlov"
 author-email = "andrew.svetlov@gmail.com"
 home-page = "https://github.com/aio-libs/aiojobs"
-requires=[]
+requires=[
+    "async-timeout >= 4.0.0"
+]
 requires-python=">=3.5"
 description-file="README.rst"
 classifiers = [
@@ -20,6 +22,9 @@ classifiers = [
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Software Development",
 ]
 
