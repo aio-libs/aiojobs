@@ -14,7 +14,7 @@ requires-python=">=3.6"
 description-file="README.rst"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Framework :: AsyncIO",
     "Programming Language :: Python",
@@ -37,3 +37,4 @@ package = "aiojobs"
 filename = "CHANGES.rst"
 directory = "CHANGES/"
 title_format = "{version} ({project_date})"
+issue_format = "`#{issue} <https://github.com/aio-libs/aiojobs/issues/{issue}>`_"

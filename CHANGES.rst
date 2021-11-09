@@ -14,6 +14,23 @@ Changelog
 
 .. towncrier release notes start
 
+1.0.0 (2021-11-09)
+==================
+
+Features
+--------
+
+- Switch to ``async-timeout>=4.0.0``. (`#275 <https://github.com/aio-libs/aiojobs/issues/275>`_)
+- Added Python 3.10 support. (`#277 <https://github.com/aio-libs/aiojobs/issues/277>`_)
+- Added type hints support. (`#280 <https://github.com/aio-libs/aiojobs/issues/280>`_)
+
+
+Deprecations and Removals
+-------------------------
+
+- Dropped Python 3.5 support. (`#279 <https://github.com/aio-libs/aiojobs/issues/279>`_)
+
+
 0.3.0 (2020-11-26)
 ==================
 
