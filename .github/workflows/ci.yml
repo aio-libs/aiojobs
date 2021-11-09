@@ -27,7 +27,7 @@ jobs:
           key: ${{ runner.os }}-pip-3.9-${{ hashFiles('requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - run: python -m pip install -r requirements/doc.txt
+      - run: make setup
       - run: make -C docs html SPHINXOPTS="-W -E"
   lint:
     name: Lint

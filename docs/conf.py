@@ -31,11 +31,11 @@ _version_path = os.path.abspath(
 with codecs.open(_version_path, "r", "latin1") as fp:
     try:
         _version_info = re.search(
-            r"^__version__ = '"
+            r'^__version__ = "'
             r"(?P<major>\d+)"
             r"\.(?P<minor>\d+)"
             r"\.(?P<patch>\d+)"
-            r"(?P<tag>.*)?'$",
+            r'(?P<tag>.*)?"$',
             fp.read(),
             re.M,
         ).groupdict()
