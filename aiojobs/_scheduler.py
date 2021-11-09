@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 from ._job import Job
 
@@ -15,7 +16,10 @@ else:  # pragma: no cover
 class Scheduler(*bases):
     def __init__(self, *, close_timeout, limit, pending_limit,
                  exception_handler):
-        self._loop = loop = asyncio.get_running_loop()
+        if sys.version_info >= (3, 7):
+            self._loop = loop = asyncio.get_running_loop()
+        else:
+            self._loop = loop = asyncio.get_event_loop()
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
