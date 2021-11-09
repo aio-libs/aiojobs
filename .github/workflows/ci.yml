@@ -110,12 +110,11 @@ jobs:
     - name: GitHub Release
       uses: aio-libs/create-release@v1.2.3
       with:
-        changes_file: CHANGELOG.md
+        changes_file: CHANGES.rst
         name: aiojobs
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        pypi_token: ${{ secrets.PYPI_SDK }}
+        pypi_token: ${{ secrets.PYPI_TOKEN }}
         version_file: aiojobs/__init__.py
         head_line: "{version}\\s+\\({date}\\)\n====+\n?"
-        fix_issue_regex: "\\(\\[#(\\d+)\\]\\(https://github.com/aio-libs/aiojobs/issues/\\\
-          1\\)\\)"
+        fix_issue_regex: "`#(\\d+) <https://github.com/aio-libs/aiojobs/issues/\\1>`"
         fix_issue_repl: "(#\\1)"
