@@ -1,5 +1,15 @@
 name: CI
-on: push
+on:
+  push:
+    branches:
+      - 'master'
+    tags: [ 'v*' ]
+  pull_request:
+    branches:
+      - 'master'
+  schedule:
+    - cron:  '0 6 * * *'  # Daily 6AM UTC build
+
 jobs:
   docs:
     name: Docs
