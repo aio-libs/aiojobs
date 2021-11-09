@@ -116,5 +116,5 @@ jobs:
         pypi_token: ${{ secrets.PYPI_TOKEN }}
         version_file: aiojobs/__init__.py
         head_line: "{version}\\s+\\({date}\\)\n====+\n?"
-        fix_issue_regex: "`#(\\d+) <https://github.com/aio-libs/aiojobs/issues/\\1>`"
+        fix_issue_regex: '\(`#(\\d+) <https://github.com/aio-libs/aiojobs/issues/\\1>`_\)'
         fix_issue_repl: "(#\\1)"
