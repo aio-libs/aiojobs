@@ -11,8 +11,11 @@ class Job:
     _explicit = False
     _task = None
 
-    def __init__(self, coro, scheduler, loop):
-        self._loop = loop
+    def __init__(self, coro, scheduler):
+        if sys.version_info >= (3, 7):
+            self._loop = loop = asyncio.get_running_loop()
+        else:
+            self._loop = loop = asyncio.get_event_loop()
         self._coro = coro
         self._scheduler = scheduler
         self._started = loop.create_future()
@@ -44,7 +47,7 @@ class Job:
         return self._closed
 
     async def _do_wait(self, timeout):
-        async with async_timeout.timeout(timeout):
+        with async_timeout.timeout(timeout):
             # TODO: add a test for waiting for a pending coro
             await self._started
             return await self._task
@@ -55,8 +58,7 @@ class Job:
         self._explicit = True
         scheduler = self._scheduler
         try:
-            return await asyncio.shield(self._do_wait(timeout),
-                                        loop=self._loop)
+            return await asyncio.shield(self._do_wait(timeout))
         except asyncio.CancelledError:
             # Don't stop inner coroutine on explicit cancel
             raise

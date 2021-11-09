@@ -186,7 +186,7 @@ async def test_job_cancel_awaiting(make_scheduler, loop):
 
     task = loop.create_task(job.wait())
     assert job.active, job
-    await asyncio.sleep(0.05, loop=loop)
+    await asyncio.sleep(0.05)
     assert job.active, job
     task.cancel()
     with suppress(asyncio.CancelledError):
