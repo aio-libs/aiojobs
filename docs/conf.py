@@ -23,14 +23,16 @@
 import codecs
 import os
 import re
+from typing import Dict
 
 _docs_path = os.path.dirname(__file__)
 _version_path = os.path.abspath(
     os.path.join(_docs_path, "..", "aiojobs", "__init__.py")
 )
+_version_info = None
 with codecs.open(_version_path, "r", "latin1") as fp:
     try:
-        _version_info = re.search(
+        match = re.search(
             r'^__version__ = "'
             r"(?P<major>\d+)"
             r"\.(?P<minor>\d+)"
@@ -38,9 +40,14 @@ with codecs.open(_version_path, "r", "latin1") as fp:
             r'(?P<tag>.*)?"$',
             fp.read(),
             re.M,
-        ).groupdict()
+        )
+        if match is not None:
+            _version_info = match.groupdict()
     except IndexError:
-        raise RuntimeError("Unable to determine version.")
+        pass
+
+if _version_info is None:
+    raise RuntimeError("Unable to determine version.")
 
 
 # -- General configuration ------------------------------------------------
@@ -163,7 +170,7 @@ htmlhelp_basename = "aiojobsdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
+latex_elements: Dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',

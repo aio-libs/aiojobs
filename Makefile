@@ -16,7 +16,7 @@ setup: .develop
 .PHONY: lint
 lint:
 	pre-commit run --all-files
-	# mypy aiojobs tests
+	mypy .
 
 
 .PHONY: test
