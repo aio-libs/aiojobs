@@ -85,3 +85,37 @@ jobs:
       - name: Report success of the test matrix
         run: |
           echo "All's good"
+
+  deploy:
+    name: Deploy
+    needs: check
+    environment: release
+    runs-on: ubuntu-latest
+    # Run only on pushing a tag
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        make setup
+        python -m pip install twine build
+    - name: Make dists
+      run: |
+        python -m build
+    - name: GitHub Release
+      uses: aio-libs/create-release@v1.2.3
+      with:
+        changes_file: CHANGELOG.md
+        name: aiojobs
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pypi_token: ${{ secrets.PYPI_SDK }}
+        version_file: aiojobs/__init__.py
+        head_line: "{version}\\s+\\({date}\\)\n====+\n?"
+        fix_issue_regex: "\\(\\[#(\\d+)\\]\\(https://github.com/aio-libs/aiojobs/issues/\\\
+          1\\)\\)"
+        fix_issue_repl: "(#\\1)"
