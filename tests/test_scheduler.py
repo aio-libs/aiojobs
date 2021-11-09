@@ -277,7 +277,7 @@ async def test_pending_queue_limit_wait(make_scheduler, loop):
 
     with pytest.raises(asyncio.TimeoutError):
         # try to wait for 1 sec to add task to pending queue
-        with timeout(1):
+        async with timeout(1):
             await scheduler.spawn(coro(fut3))
 
     assert scheduler.pending_count == 1
