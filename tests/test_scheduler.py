@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from unittest import mock
 
 import pytest
@@ -385,6 +386,10 @@ async def test_run_after_close(scheduler, loop):
         del coro
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 7),
+    reason="Python 3.6 doesn't support asyncio.get_running_loop()",
+)
 def test_scheduler_must_be_created_within_running_loop():
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0,
