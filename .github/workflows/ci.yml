@@ -29,8 +29,8 @@ jobs:
             ${{ runner.os }}-pip-
       - run: python -m pip install -r requirements/doc.txt
       - run: make -C docs html SPHINXOPTS="-W -E"
-  flake:
-    name: Flake8
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -46,11 +46,11 @@ jobs:
           key: ${{ runner.os }}-pip-3.9-${{ hashFiles('requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - run: python -m pip install -r requirements/ci.txt
-      - run: flake8
+      - run: make setup
+      - run: make lint
   test:
     name: Test
-    needs: flake
+    needs: [docs, lint]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -76,3 +76,12 @@ jobs:
         env:
           PYTHONPATH: .
         run: pytest --cov-branch --cov=aiojobs --cov-report=term tests
+
+  check:  # This job does nothing and is only used for the branch protection
+    name: Check
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report success of the test matrix
+        run: |
+          echo "All's good"

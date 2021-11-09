@@ -15,6 +15,7 @@ def test_ctor(scheduler):
 async def test_spawn(scheduler, loop):
     async def coro():
         await asyncio.sleep(1)
+
     job = await scheduler.spawn(coro())
     assert not job.closed
 
@@ -26,6 +27,7 @@ async def test_spawn(scheduler, loop):
 async def test_run_retval(scheduler, loop):
     async def coro():
         return 1
+
     job = await scheduler.spawn(coro())
     ret = await job.wait()
     assert ret == 1
@@ -74,11 +76,9 @@ async def test_exception_non_waited_job(make_scheduler, loop):
 
     assert len(scheduler) == 0
 
-    expect = {'exception': exc,
-              'job': mock.ANY,
-              'message': 'Job processing failed'}
+    expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
     if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
@@ -100,11 +100,9 @@ async def test_exception_on_close(make_scheduler, loop):
 
     assert len(scheduler) == 0
 
-    expect = {'exception': exc,
-              'job': mock.ANY,
-              'message': 'Job processing failed'}
+    expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
     if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
@@ -119,13 +117,13 @@ async def test_scheduler_repr(scheduler, loop):
     async def coro():
         await asyncio.sleep(1)
 
-    assert repr(scheduler) == '<Scheduler jobs=0>'
+    assert repr(scheduler) == "<Scheduler jobs=0>"
 
     await scheduler.spawn(coro())
-    assert repr(scheduler) == '<Scheduler jobs=1>'
+    assert repr(scheduler) == "<Scheduler jobs=1>"
 
     await scheduler.close()
-    assert repr(scheduler) == '<Scheduler closed jobs=0>'
+    assert repr(scheduler) == "<Scheduler closed jobs=0>"
 
 
 async def test_close_jobs(scheduler, loop):
@@ -161,7 +159,7 @@ async def test_exception_handler_api(make_scheduler):
 def test_exception_handler_default(scheduler, loop):
     handler = mock.Mock()
     loop.set_exception_handler(handler)
-    d = {'a': 'b'}
+    d = {"a": "b"}
     scheduler.call_exception_handler(d)
     handler.assert_called_with(loop, d)
 
@@ -179,8 +177,7 @@ async def test_wait_with_timeout(scheduler, loop):
 
 async def test_timeout_on_closing(make_scheduler, loop):
     exc_handler = mock.Mock()
-    scheduler = await make_scheduler(exception_handler=exc_handler,
-                                     close_timeout=0.01)
+    scheduler = await make_scheduler(exception_handler=exc_handler, close_timeout=0.01)
     fut1 = asyncio.Future()
     fut2 = asyncio.Future()
 
@@ -195,11 +192,9 @@ async def test_timeout_on_closing(make_scheduler, loop):
     await scheduler.close()
     assert job.closed
     assert fut1.cancelled()
-    expect = {'message': 'Job closing timed out',
-              'job': job,
-              'exception': mock.ANY}
+    expect = {"message": "Job closing timed out", "job": job, "exception": mock.ANY}
     if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
@@ -217,11 +212,9 @@ async def test_exception_on_closing(make_scheduler, loop):
     await fut
     await scheduler.close()
     assert job.closed
-    expect = {'message': 'Job processing failed',
-              'job': job,
-              'exception': exc}
+    expect = {"message": "Job processing failed", "job": job, "exception": exc}
     if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
@@ -392,7 +385,6 @@ async def test_run_after_close(scheduler, loop):
 )
 def test_scheduler_must_be_created_within_running_loop():
     with pytest.raises(RuntimeError) as exc_info:
-        Scheduler(close_timeout=0, limit=0,
-                  pending_limit=0, exception_handler=None)
+        Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
 
     assert exc_info.match("no running event loop")

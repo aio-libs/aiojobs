@@ -26,13 +26,13 @@ class Job:
     def __repr__(self):
         info = []
         if self._closed:
-            info.append('closed')
+            info.append("closed")
         elif self._task is None:
-            info.append('pending')
-        info = ' '.join(info)
+            info.append("pending")
+        info = " ".join(info)
         if info:
-            info += ' '
-        return '<Job {}coro=<{}>>'.format(info, self._coro)
+            info += " "
+        return f"<Job {info}coro=<{self._coro}>>"
 
     @property
     def active(self):
@@ -93,11 +93,13 @@ class Job:
         except asyncio.TimeoutError as exc:
             if self._explicit:
                 raise
-            context = {'message': "Job closing timed out",
-                       'job': self,
-                       'exception': exc}
+            context = {
+                "message": "Job closing timed out",
+                "job": self,
+                "exception": exc,
+            }
             if self._source_traceback is not None:
-                context['source_traceback'] = self._source_traceback
+                context["source_traceback"] = self._source_traceback
             scheduler.call_exception_handler(context)
         except Exception as exc:
             if self._explicit:
@@ -125,9 +127,7 @@ class Job:
         self._closed = True
 
     def _report_exception(self, exc):
-        context = {'message': "Job processing failed",
-                   'job': self,
-                   'exception': exc}
+        context = {"message": "Job processing failed", "job": self, "exception": exc}
         if self._source_traceback is not None:
-            context['source_traceback'] = self._source_traceback
+            context["source_traceback"] = self._source_traceback
         self._scheduler.call_exception_handler(context)

@@ -8,41 +8,44 @@ import pytest
 async def test_job_spawned(scheduler):
     async def coro():
         pass
+
     job = await scheduler.spawn(coro())
     assert job.active
     assert not job.closed
     assert not job.pending
-    assert 'closed' not in repr(job)
-    assert 'pending' not in repr(job)
+    assert "closed" not in repr(job)
+    assert "pending" not in repr(job)
 
-    assert repr(job).startswith('<Job')
-    assert repr(job).endswith('>')
+    assert repr(job).startswith("<Job")
+    assert repr(job).endswith(">")
 
 
 async def test_job_awaited(scheduler):
     async def coro():
         pass
+
     job = await scheduler.spawn(coro())
     await job.wait()
 
     assert not job.active
     assert job.closed
     assert not job.pending
-    assert 'closed' in repr(job)
-    assert 'pending' not in repr(job)
+    assert "closed" in repr(job)
+    assert "pending" not in repr(job)
 
 
 async def test_job_closed(scheduler):
     async def coro():
         pass
+
     job = await scheduler.spawn(coro())
     await job.close()
 
     assert not job.active
     assert job.closed
     assert not job.pending
-    assert 'closed' in repr(job)
-    assert 'pending' not in repr(job)
+    assert "closed" in repr(job)
+    assert "pending" not in repr(job)
 
 
 async def test_job_pending(make_scheduler):
@@ -60,8 +63,8 @@ async def test_job_pending(make_scheduler):
     assert not job.active
     assert not job.closed
     assert job.pending
-    assert 'closed' not in repr(job)
-    assert 'pending' in repr(job)
+    assert "closed" not in repr(job)
+    assert "pending" in repr(job)
 
 
 # Mangle a name for satisfy 'pending' not in repr check
@@ -82,8 +85,8 @@ async def test_job_resume_after_p_e_nding(make_scheduler):
     assert job2.active
     assert not job2.closed
     assert not job2.pending
-    assert 'closed' not in repr(job2)
-    assert 'pending' not in repr(job2)
+    assert "closed" not in repr(job2)
+    assert "pending" not in repr(job2)
 
 
 async def test_job_wait_result(make_scheduler):
@@ -134,8 +137,7 @@ async def test_job_close_exception(make_scheduler):
 
 async def test_job_close_timeout(make_scheduler):
     handler = mock.Mock()
-    scheduler = await make_scheduler(exception_handler=handler,
-                                     close_timeout=0.01)
+    scheduler = await make_scheduler(exception_handler=handler, close_timeout=0.01)
 
     fut1 = asyncio.Future()
     fut2 = asyncio.Future()

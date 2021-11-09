@@ -3,10 +3,15 @@ import asyncio
 import pytest
 from aiohttp import web
 
-from aiojobs.aiohttp import (atomic, get_scheduler, get_scheduler_from_app,
-                             get_scheduler_from_request)
 from aiojobs.aiohttp import setup as aiojobs_setup
 from aiojobs.aiohttp import spawn
+
+from aiojobs.aiohttp import (  # isort: skip
+    atomic,
+    get_scheduler,
+    get_scheduler_from_app,
+    get_scheduler_from_request,
+)
 
 
 async def test_plugin(aiohttp_client):
@@ -23,11 +28,11 @@ async def test_plugin(aiohttp_client):
         return web.Response()
 
     app = web.Application()
-    app.router.add_get('/', handler)
+    app.router.add_get("/", handler)
     aiojobs_setup(app)
 
     client = await aiohttp_client(app)
-    resp = await client.get('/')
+    resp = await client.get("/")
     assert resp.status == 200
 
     assert job.active
@@ -42,10 +47,10 @@ async def test_no_setup(aiohttp_client):
         return web.Response()
 
     app = web.Application()
-    app.router.add_get('/', handler)
+    app.router.add_get("/", handler)
 
     client = await aiohttp_client(app)
-    resp = await client.get('/')
+    resp = await client.get("/")
     assert resp.status == 200
 
 
@@ -56,11 +61,11 @@ async def test_atomic(aiohttp_client):
         return web.Response()
 
     app = web.Application()
-    app.router.add_get('/', handler)
+    app.router.add_get("/", handler)
     aiojobs_setup(app)
 
     client = await aiohttp_client(app)
-    resp = await client.get('/')
+    resp = await client.get("/")
     assert resp.status == 200
 
     scheduler = get_scheduler_from_app(app)
@@ -81,7 +86,7 @@ async def test_atomic_from_view(aiohttp_client):
     aiojobs_setup(app)
 
     client = await aiohttp_client(app)
-    resp = await client.get('/')
+    resp = await client.get("/")
     assert resp.status == 200
 
     scheduler = get_scheduler_from_app(app)
@@ -98,8 +103,9 @@ async def test_nested_application(aiohttp_client):
 
     class MyView(web.View):
         async def get(self):
-            assert get_scheduler_from_request(self.request) ==\
-                get_scheduler_from_app(app)
+            assert get_scheduler_from_request(self.request) == get_scheduler_from_app(
+                app
+            )
             return web.Response()
 
     app2.router.add_route("*", "/", MyView)
@@ -119,10 +125,12 @@ async def test_nested_application_separate_scheduler(aiohttp_client):
 
     class MyView(web.View):
         async def get(self):
-            assert get_scheduler_from_request(self.request) !=\
-                get_scheduler_from_app(app)
-            assert get_scheduler_from_request(self.request) ==\
-                get_scheduler_from_app(app2)
+            assert get_scheduler_from_request(self.request) != get_scheduler_from_app(
+                app
+            )
+            assert get_scheduler_from_request(self.request) == get_scheduler_from_app(
+                app2
+            )
             return web.Response()
 
     app2.router.add_route("*", "/", MyView)

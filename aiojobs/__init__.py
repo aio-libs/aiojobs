@@ -6,18 +6,25 @@ asyncio applications.
 """
 
 
-__version__ = '0.3.0'
+__version__ = "0.3.0"
 
 from ._scheduler import Scheduler
 
 
-async def create_scheduler(*, close_timeout=0.1, limit=100,
-                           pending_limit=10000, exception_handler=None):
+async def create_scheduler(
+    *, close_timeout=0.1, limit=100, pending_limit=10000, exception_handler=None
+):
     if exception_handler is not None and not callable(exception_handler):
-        raise TypeError('A callable object or None is expected, '
-                        'got {!r}'.format(exception_handler))
-    return Scheduler(close_timeout=close_timeout,
-                     limit=limit, pending_limit=pending_limit,
-                     exception_handler=exception_handler)
+        raise TypeError(
+            "A callable object or None is expected, "
+            "got {!r}".format(exception_handler)
+        )
+    return Scheduler(
+        close_timeout=close_timeout,
+        limit=limit,
+        pending_limit=pending_limit,
+        exception_handler=exception_handler,
+    )
 
-__all__ = ('create_scheduler',)
+
+__all__ = ("create_scheduler",)

@@ -8,14 +8,14 @@ try:
 except ImportError:  # pragma: no cover
     # Python 3.5 has no Collection ABC class
     from collections.abc import Container, Iterable, Sized
+
     bases = Sized, Iterable, Container
 else:  # pragma: no cover
     bases = (Collection,)
 
 
 class Scheduler(*bases):
-    def __init__(self, *, close_timeout, limit, pending_limit,
-                 exception_handler):
+    def __init__(self, *, close_timeout, limit, pending_limit, exception_handler):
         if sys.version_info >= (3, 7):
             self._loop = loop = asyncio.get_running_loop()
         else:
@@ -41,11 +41,11 @@ class Scheduler(*bases):
     def __repr__(self):
         info = []
         if self._closed:
-            info.append('closed')
-        info = ' '.join(info)
+            info.append("closed")
+        info = " ".join(info)
         if info:
-            info += ' '
-        return '<Scheduler {}jobs={}>'.format(info, len(self))
+            info += " "
+        return f"<Scheduler {info}jobs={len(self)}>"
 
     @property
     def limit(self):
@@ -75,8 +75,7 @@ class Scheduler(*bases):
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
         job = Job(coro, self)
-        should_start = (self._limit is None or
-                        self.active_count < self._limit)
+        should_start = self._limit is None or self.active_count < self._limit
         self._jobs.add(job)
         if should_start:
             job._start()
@@ -98,7 +97,8 @@ class Scheduler(*bases):
                 self._pending.get_nowait()
             await asyncio.gather(
                 *[job._close(self._close_timeout) for job in jobs],
-                return_exceptions=True)
+                return_exceptions=True,
+            )
             self._jobs.clear()
         self._failed_tasks.put_nowait(None)
         await self._failed_task
