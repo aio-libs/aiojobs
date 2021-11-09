@@ -1,20 +1,11 @@
 import asyncio
 import sys
+from collections.abc import Collection
 
 from ._job import Job
 
-try:
-    from collections.abc import Collection
-except ImportError:  # pragma: no cover
-    # Python 3.5 has no Collection ABC class
-    from collections.abc import Container, Iterable, Sized
 
-    bases = Sized, Iterable, Container
-else:  # pragma: no cover
-    bases = (Collection,)
-
-
-class Scheduler(*bases):
+class Scheduler(Collection):
     def __init__(self, *, close_timeout, limit, pending_limit, exception_handler):
         if sys.version_info >= (3, 7):
             self._loop = loop = asyncio.get_running_loop()
