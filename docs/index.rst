@@ -83,10 +83,6 @@ a bug or have some suggestion in order to improve the library.
 Communication channels
 ----------------------
 
-*aio-libs* google group: https://groups.google.com/forum/#!forum/aio-libs
-
-Feel free to post your questions and ideas here.
-
 *Gitter Chat* https://gitter.im/aio-libs/Lobby
 
 We support `Stack Overflow <https://stackoverflow.com>`_.
