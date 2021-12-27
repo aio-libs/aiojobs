@@ -19,6 +19,7 @@ class Scheduler(Collection):
         self._failed_task = loop.create_task(self._wait_failed())
         self._pending = asyncio.Queue(maxsize=pending_limit)
         self._closed = False
+        self._blocked_pending = 0
 
     def __iter__(self):
         return iter(list(self._jobs))
@@ -52,7 +53,7 @@ class Scheduler(Collection):
 
     @property
     def active_count(self):
-        return len(self._jobs) - self._pending.qsize()
+        return len(self._jobs) - self._pending.qsize() - self._blocked_pending
 
     @property
     def pending_count(self):
@@ -72,7 +73,9 @@ class Scheduler(Collection):
             job._start()
         else:
             # wait for free slot in queue
+            self._blocked_pending += 1
             await self._pending.put(job)
+            self._blocked_pending -= 1
         return job
 
     async def close(self):

@@ -2,6 +2,7 @@ import asyncio
 from contextlib import suppress
 from unittest import mock
 
+import async_timeout
 import pytest
 
 
@@ -87,6 +88,25 @@ async def test_job_resume_after_p_e_nding(make_scheduler):
     assert not job2.pending
     assert "closed" not in repr(job2)
     assert "pending" not in repr(job2)
+
+
+async def test_job_deadlock_non_reg(make_scheduler):
+    async def coro(id, timeout):
+        print(f"Start coro #{id} with timeout {timeout}", flush=True)
+        await asyncio.sleep(timeout)
+        print(f"End coro #{id} with timeout {timeout}", flush=True)
+
+    scheduler = await make_scheduler(limit=1, pending_limit=1)
+    last_job = None
+    async with async_timeout.timeout(10):
+        for i in range(3):
+            # spawn jobs
+            last_job = await scheduler.spawn(coro(i, 2))
+
+    assert last_job
+    await last_job.wait()
+    # gracefully close spawned jobs
+    await scheduler.close()
 
 
 async def test_job_wait_result(make_scheduler):
