@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit >= 1.1"]
-build-backend = "flit.buildapi"
+requires = ["flit_core >= 1.1"]
+build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
 module = "aiojobs"
