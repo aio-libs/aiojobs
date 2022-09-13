@@ -47,7 +47,7 @@ class Job:
         return self._closed
 
     async def _do_wait(self, timeout):
-        with async_timeout.timeout(timeout):
+        async with async_timeout.timeout(timeout):
             # TODO: add a test for waiting for a pending coro
             await self._started
             return await self._task
