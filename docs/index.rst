@@ -39,7 +39,7 @@ Usage example
        # gracefully close spawned jobs
        await scheduler.close()
 
-   asyncio.get_event_loop().run_until_complete(main())
+   asyncio.run(main())
 
 For further information read :ref:`aiojobs-quickstart`,
 :ref:`aiojobs-intro` and :ref:`aiojobs-api`.

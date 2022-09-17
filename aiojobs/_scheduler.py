@@ -6,13 +6,12 @@ from ._job import Job
 
 class Scheduler(Collection):
     def __init__(self, *, close_timeout, limit, pending_limit, exception_handler):
-        self._loop = loop = asyncio.get_running_loop()
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
         self._failed_tasks = asyncio.Queue()
-        self._failed_task = loop.create_task(self._wait_failed())
+        self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending = asyncio.Queue(maxsize=pending_limit)
         self._closed = False
 
@@ -93,7 +92,7 @@ class Scheduler(Collection):
     def call_exception_handler(self, context):
         handler = self._exception_handler
         if handler is None:
-            handler = self._loop.call_exception_handler(context)
+            handler = asyncio.get_running_loop().call_exception_handler(context)
         else:
             handler(self, context)
 
