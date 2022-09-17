@@ -58,7 +58,7 @@ Let's collect it altogether into very small but still functional example::
        # gracefully close spawned jobs
        await scheduler.close()
 
-   asyncio.get_event_loop().run_until_complete(main())
+   asyncio.run(main())
 
 
 Our jobs are very simple :func:`asyncio.sleep` calls with variable

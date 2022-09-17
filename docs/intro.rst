@@ -13,7 +13,7 @@ Asyncio has builtin support for starting new tasks.
 
 But for many reasons raw tasks are not sufficient for daily needs:
 
-#. *Fire-and-forget* call like ``loop.create_task(f())`` doesn't give
+#. *Fire-and-forget* call like ``asyncio.create_task(f())`` doesn't give
    control about errors raised from ``f()`` async function: all
    exceptions are thrown into
    :meth:`asyncio.AbstractEventLoop.call_exception_handler`.
@@ -120,7 +120,7 @@ The library has no guarantee for job execution starting.
 
 The problem is::
 
-   task = loop.create_task(coro())
+   task = asyncio.create_task(coro())
    task.cancel()
 
 cancels a task immediately, a code from ``coro()`` has no chance to
@@ -131,5 +131,5 @@ Adding a context switch like ``asyncio.sleep(0)`` between
 callee could be cancelled on waiting for ``sleep()`` also.
 
 Thus shielding an async function ``task =
-loop.create_task(asyncio.shield(coro()))`` still doesn't guarantee
+asyncio.create_task(asyncio.shield(coro()))`` still doesn't guarantee
 that ``coro()`` will be executed if callee is cancelled.

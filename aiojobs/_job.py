@@ -12,9 +12,9 @@ class Job:
     _task = None
 
     def __init__(self, coro, scheduler):
-        self._loop = loop = asyncio.get_running_loop()
         self._coro = coro
         self._scheduler = scheduler
+        loop = asyncio.get_running_loop()
         self._started = loop.create_future()
 
         if loop.get_debug():
@@ -104,7 +104,7 @@ class Job:
 
     def _start(self):
         assert self._task is None
-        self._task = self._loop.create_task(self._coro)
+        self._task = asyncio.create_task(self._coro)
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
