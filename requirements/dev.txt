@@ -1,6 +1,6 @@
 -r ci.txt
 -r doc.txt
 flit==3.7.1
-mypy==0.921
+mypy==0.971
 pre-commit==2.16.0
 pytest-sugar==0.9.4
