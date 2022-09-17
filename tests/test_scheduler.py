@@ -155,7 +155,7 @@ async def test_exception_handler_api(make_scheduler):
     assert s3.exception_handler is None
 
 
-def test_exception_handler_default(scheduler, loop):
+async def test_exception_handler_default(scheduler, loop):
     handler = mock.Mock()
     loop.set_exception_handler(handler)
     d = {"a": "b"}
@@ -382,4 +382,4 @@ def test_scheduler_must_be_created_within_running_loop():
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
 
-    assert exc_info.match("no running event loop")
+    assert exc_info.match("no current event loop")
