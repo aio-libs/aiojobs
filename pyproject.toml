@@ -10,7 +10,7 @@ home-page = "https://github.com/aio-libs/aiojobs"
 requires=[
     "async-timeout >= 4.0.0"
 ]
-requires-python=">=3.6"
+requires-python=">=3.7"
 description-file="README.rst"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -19,7 +19,6 @@ classifiers = [
     "Framework :: AsyncIO",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",

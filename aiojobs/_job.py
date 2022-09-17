@@ -12,10 +12,7 @@ class Job:
     _task = None
 
     def __init__(self, coro, scheduler):
-        if sys.version_info >= (3, 7):
-            self._loop = loop = asyncio.get_running_loop()
-        else:
-            self._loop = loop = asyncio.get_event_loop()
+        self._loop = loop = asyncio.get_running_loop()
         self._coro = coro
         self._scheduler = scheduler
         self._started = loop.create_future()

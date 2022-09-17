@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from collections.abc import Collection
 
 from ._job import Job
@@ -7,10 +6,7 @@ from ._job import Job
 
 class Scheduler(Collection):
     def __init__(self, *, close_timeout, limit, pending_limit, exception_handler):
-        if sys.version_info >= (3, 7):
-            self._loop = loop = asyncio.get_running_loop()
-        else:
-            self._loop = loop = asyncio.get_event_loop()
+        self._loop = loop = asyncio.get_running_loop()
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
