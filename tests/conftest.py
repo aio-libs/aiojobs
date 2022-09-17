@@ -3,17 +3,15 @@ import pytest
 from aiojobs import create_scheduler
 from aiojobs._scheduler import Scheduler
 
-PARAMS = dict(
-    close_timeout=1.0,
-    limit=100,
-    pending_limit=0,
-    exception_handler=None
-)
+PARAMS = dict(close_timeout=1.0, limit=100, pending_limit=0, exception_handler=None)
 
 
 @pytest.fixture
 def scheduler(loop):
-    ret = Scheduler(loop=loop, **PARAMS)
+    async def maker():
+        return Scheduler(**PARAMS)
+
+    ret = loop.run_until_complete(maker())
     yield ret
     loop.run_until_complete(ret.close())
 

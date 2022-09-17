@@ -1,0 +1,120 @@
+name: CI
+on:
+  push:
+    branches:
+      - 'master'
+    tags: [ 'v*' ]
+  pull_request:
+    branches:
+      - 'master'
+  schedule:
+    - cron:  '0 6 * * *'  # Daily 6AM UTC build
+
+jobs:
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkhout
+        uses: actions/checkout@v2
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3.9-${{ hashFiles('requirements/*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - run: make setup
+      - run: make -C docs html SPHINXOPTS="-W -E"
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkhout
+        uses: actions/checkout@v2
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3.9-${{ hashFiles('requirements/*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - run: make setup
+      - run: make lint
+  test:
+    name: Test
+    needs: [docs, lint]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+         pyver: ['3.6', '3.7', '3.8', '3.9', '3.10']
+      fail-fast: true
+    steps:
+      - name: Checkhout
+        uses: actions/checkout@v2.4.0
+      - name: Setup Python ${{ matrix.pyver }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.pyver }}
+      - name: Cache PyPI
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.pyver }}-${{ hashFiles('requirements/*.txt') }}
+          restore-keys: |
+              ${{ runner.os }}-pip-${{ matrix.pyver }}-
+      - name: Install dependencies
+        run: python -m pip install -r requirements/ci.txt
+      - name: Run tests
+        env:
+          PYTHONPATH: .
+        run: pytest --cov-branch --cov=aiojobs --cov-report=term tests
+
+  check:  # This job does nothing and is only used for the branch protection
+    name: Check
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report success of the test matrix
+        run: |
+          echo "All's good"
+
+  deploy:
+    name: Deploy
+    needs: check
+    environment: release
+    runs-on: ubuntu-latest
+    # Run only on pushing a tag
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        make setup
+        python -m pip install twine build
+    - name: Make dists
+      run: |
+        python -m build
+    - name: GitHub Release
+      uses: aio-libs/create-release@v1.2.3
+      with:
+        changes_file: CHANGES.rst
+        name: aiojobs
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pypi_token: ${{ secrets.PYPI_TOKEN }}
+        version_file: aiojobs/__init__.py
+        head_line: "{version}\\s+\\({date}\\)\n====+\n?"
+        fix_issue_regex: '\(`#(\\d+) <https://github.com/aio-libs/aiojobs/issues/\\1>`_\)'
+        fix_issue_repl: "(#\\1)"

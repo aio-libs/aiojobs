@@ -1,28 +1,23 @@
 import asyncio
+import sys
+from collections.abc import Collection
 
 from ._job import Job
 
-try:
-    from collections.abc import Collection
-except ImportError:  # pragma: no cover
-    # Python 3.5 has no Collection ABC class
-    from collections.abc import Sized, Iterable, Container
-    bases = Sized, Iterable, Container
-else:  # pragma: no cover
-    bases = (Collection,)
 
-
-class Scheduler(*bases):
-    def __init__(self, *, close_timeout, limit, pending_limit,
-                 exception_handler, loop):
-        self._loop = loop
+class Scheduler(Collection):
+    def __init__(self, *, close_timeout, limit, pending_limit, exception_handler):
+        if sys.version_info >= (3, 7):
+            self._loop = loop = asyncio.get_running_loop()
+        else:
+            self._loop = loop = asyncio.get_event_loop()
         self._jobs = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_tasks = asyncio.Queue(loop=loop)
+        self._failed_tasks = asyncio.Queue()
         self._failed_task = loop.create_task(self._wait_failed())
-        self._pending = asyncio.Queue(maxsize=pending_limit, loop=loop)
+        self._pending = asyncio.Queue(maxsize=pending_limit)
         self._closed = False
 
     def __iter__(self):
@@ -37,11 +32,11 @@ class Scheduler(*bases):
     def __repr__(self):
         info = []
         if self._closed:
-            info.append('closed')
-        info = ' '.join(info)
+            info.append("closed")
+        info = " ".join(info)
         if info:
-            info += ' '
-        return '<Scheduler {}jobs={}>'.format(info, len(self))
+            info += " "
+        return f"<Scheduler {info}jobs={len(self)}>"
 
     @property
     def limit(self):
@@ -70,9 +65,8 @@ class Scheduler(*bases):
     async def spawn(self, coro):
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
-        job = Job(coro, self, self._loop)
-        should_start = (self._limit is None or
-                        self.active_count < self._limit)
+        job = Job(coro, self)
+        should_start = self._limit is None or self.active_count < self._limit
         self._jobs.add(job)
         if should_start:
             job._start()
@@ -94,7 +88,8 @@ class Scheduler(*bases):
                 self._pending.get_nowait()
             await asyncio.gather(
                 *[job._close(self._close_timeout) for job in jobs],
-                loop=self._loop, return_exceptions=True)
+                return_exceptions=True,
+            )
             self._jobs.clear()
         self._failed_tasks.put_nowait(None)
         await self._failed_task
