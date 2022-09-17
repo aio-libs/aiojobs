@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from aiojobs import create_scheduler
@@ -7,17 +9,17 @@ PARAMS = dict(close_timeout=1.0, limit=100, pending_limit=0, exception_handler=N
 
 
 @pytest.fixture
-def scheduler(loop):
+async def scheduler():
     async def maker():
         return Scheduler(**PARAMS)
 
-    ret = loop.run_until_complete(maker())
+    ret = await maker()
     yield ret
-    loop.run_until_complete(ret.close())
+    await ret.close()
 
 
 @pytest.fixture
-def make_scheduler(loop):
+async def make_scheduler():
     schedulers = []
 
     async def maker(**kwargs):
@@ -27,5 +29,4 @@ def make_scheduler(loop):
 
     yield maker
 
-    for scheduler in schedulers:
-        loop.run_until_complete(scheduler.close())
+    await asyncio.gather(*(s.close() for s in schedulers))
