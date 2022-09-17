@@ -29,10 +29,10 @@ repos:
   hooks:
   - id: isort
 - repo: https://github.com/psf/black
-  rev: '21.12b0'
+  rev: '22.8.0'
   hooks:
     - id: black
-      language_version: python3 # Should be a command that runs python3.6+
+      language_version: python3 # Should be a command that runs python3
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v4.1.0'
   hooks:
@@ -75,7 +75,7 @@ repos:
   hooks:
   - id: flake8
     exclude: "^docs/"
-- repo: git://github.com/Lucas-C/pre-commit-hooks-markup
+- repo: https://github.com/Lucas-C/pre-commit-hooks-markup
   rev: v1.0.1
   hooks:
   - id: rst-linter
