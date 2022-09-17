@@ -382,4 +382,4 @@ def test_scheduler_must_be_created_within_running_loop():
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
 
-    assert exc_info.match("no current event loop")
+    assert exc_info.match("no (current|running) event loop")
