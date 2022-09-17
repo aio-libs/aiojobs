@@ -1,4 +1,5 @@
 import asyncio
+
 import pytest
 
 from aiojobs import create_scheduler
