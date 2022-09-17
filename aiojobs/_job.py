@@ -81,8 +81,7 @@ class Job:
             # it prevents a warning like
             # RuntimeWarning: coroutine 'coro' was never awaited
             self._start()
-        if not self._task.done():
-            self._task.cancel()
+        self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
         try:
