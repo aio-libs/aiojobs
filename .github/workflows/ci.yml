@@ -78,7 +78,7 @@ jobs:
 
   check:  # This job does nothing and is only used for the branch protection
     name: Check
-    needs: test
+    needs: [docs, lint, test]
     runs-on: ubuntu-latest
     steps:
       - name: Report success of the test matrix
