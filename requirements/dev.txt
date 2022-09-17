@@ -3,4 +3,4 @@
 flit==3.7.1
 mypy==0.921
 pre-commit==2.16.0
-pytest-sugar==0.9.4
+pytest-sugar==0.9.5
