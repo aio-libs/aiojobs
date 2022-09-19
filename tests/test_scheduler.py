@@ -4,14 +4,17 @@ from unittest import mock
 import pytest
 from async_timeout import timeout
 
+from aiojobs import Scheduler
+
 
 def test_ctor(scheduler):
     assert len(scheduler) == 0
 
 
-async def test_spawn(scheduler, loop):
+async def test_spawn(scheduler):
     async def coro():
-        await asyncio.sleep(1, loop=loop)
+        await asyncio.sleep(1)
+
     job = await scheduler.spawn(coro())
     assert not job.closed
 
@@ -20,9 +23,10 @@ async def test_spawn(scheduler, loop):
     assert job in scheduler
 
 
-async def test_run_retval(scheduler, loop):
+async def test_run_retval(scheduler):
     async def coro():
         return 1
+
     job = await scheduler.spawn(coro())
     ret = await job.wait()
     assert ret == 1
@@ -34,12 +38,12 @@ async def test_run_retval(scheduler, loop):
     assert job not in scheduler
 
 
-async def test_exception_in_explicit_waiting(make_scheduler, loop):
+async def test_exception_in_explicit_waiting(make_scheduler):
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
 
     async def coro():
-        await asyncio.sleep(0, loop=loop)
+        await asyncio.sleep(0)
         raise RuntimeError()
 
     job = await scheduler.spawn(coro())
@@ -55,31 +59,29 @@ async def test_exception_in_explicit_waiting(make_scheduler, loop):
     assert not exc_handler.called
 
 
-async def test_exception_non_waited_job(make_scheduler, loop):
+async def test_exception_non_waited_job(make_scheduler, event_loop):
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
 
     async def coro():
-        await asyncio.sleep(0, loop=loop)
+        await asyncio.sleep(0)
         raise exc
 
     await scheduler.spawn(coro())
     assert len(scheduler) == 1
 
-    await asyncio.sleep(0.05, loop=loop)
+    await asyncio.sleep(0.05)
 
     assert len(scheduler) == 0
 
-    expect = {'exception': exc,
-              'job': mock.ANY,
-              'message': 'Job processing failed'}
-    if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+    expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
+    if event_loop.get_debug():
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_close(make_scheduler, loop):
+async def test_exception_on_close(make_scheduler, event_loop):
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
@@ -97,11 +99,9 @@ async def test_exception_on_close(make_scheduler, loop):
 
     assert len(scheduler) == 0
 
-    expect = {'exception': exc,
-              'job': mock.ANY,
-              'message': 'Job processing failed'}
-    if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+    expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
+    if event_loop.get_debug():
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
@@ -112,22 +112,22 @@ async def test_close_timeout(make_scheduler):
     assert s2.close_timeout == 1
 
 
-async def test_scheduler_repr(scheduler, loop):
+async def test_scheduler_repr(scheduler):
     async def coro():
-        await asyncio.sleep(1, loop=loop)
+        await asyncio.sleep(1)
 
-    assert repr(scheduler) == '<Scheduler jobs=0>'
+    assert repr(scheduler) == "<Scheduler jobs=0>"
 
     await scheduler.spawn(coro())
-    assert repr(scheduler) == '<Scheduler jobs=1>'
+    assert repr(scheduler) == "<Scheduler jobs=1>"
 
     await scheduler.close()
-    assert repr(scheduler) == '<Scheduler closed jobs=0>'
+    assert repr(scheduler) == "<Scheduler closed jobs=0>"
 
 
-async def test_close_jobs(scheduler, loop):
+async def test_close_jobs(scheduler):
     async def coro():
-        await asyncio.sleep(1, loop=loop)
+        await asyncio.sleep(1)
 
     assert not scheduler.closed
 
@@ -155,17 +155,17 @@ async def test_exception_handler_api(make_scheduler):
     assert s3.exception_handler is None
 
 
-def test_exception_handler_default(scheduler, loop):
+async def test_exception_handler_default(scheduler, event_loop):
     handler = mock.Mock()
-    loop.set_exception_handler(handler)
-    d = {'a': 'b'}
+    event_loop.set_exception_handler(handler)
+    d = {"a": "b"}
     scheduler.call_exception_handler(d)
-    handler.assert_called_with(loop, d)
+    handler.assert_called_with(event_loop, d)
 
 
-async def test_wait_with_timeout(scheduler, loop):
+async def test_wait_with_timeout(scheduler):
     async def coro():
-        await asyncio.sleep(1, loop=loop)
+        await asyncio.sleep(1)
 
     job = await scheduler.spawn(coro())
     with pytest.raises(asyncio.TimeoutError):
@@ -174,10 +174,9 @@ async def test_wait_with_timeout(scheduler, loop):
     assert len(scheduler) == 0
 
 
-async def test_timeout_on_closing(make_scheduler, loop):
+async def test_timeout_on_closing(make_scheduler, event_loop):
     exc_handler = mock.Mock()
-    scheduler = await make_scheduler(exception_handler=exc_handler,
-                                     close_timeout=0.01)
+    scheduler = await make_scheduler(exception_handler=exc_handler, close_timeout=0.01)
     fut1 = asyncio.Future()
     fut2 = asyncio.Future()
 
@@ -188,19 +187,17 @@ async def test_timeout_on_closing(make_scheduler, loop):
             await fut2
 
     job = await scheduler.spawn(coro())
-    await asyncio.sleep(0.001, loop=loop)
+    await asyncio.sleep(0.001)
     await scheduler.close()
     assert job.closed
     assert fut1.cancelled()
-    expect = {'message': 'Job closing timed out',
-              'job': job,
-              'exception': mock.ANY}
-    if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+    expect = {"message": "Job closing timed out", "job": job, "exception": mock.ANY}
+    if event_loop.get_debug():
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_closing(make_scheduler, loop):
+async def test_exception_on_closing(make_scheduler, event_loop):
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     fut = asyncio.Future()
@@ -214,11 +211,9 @@ async def test_exception_on_closing(make_scheduler, loop):
     await fut
     await scheduler.close()
     assert job.closed
-    expect = {'message': 'Job processing failed',
-              'job': job,
-              'exception': exc}
-    if loop.get_debug():
-        expect['source_traceback'] = mock.ANY
+    expect = {"message": "Job processing failed", "job": job, "exception": exc}
+    if event_loop.get_debug():
+        expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
@@ -256,7 +251,7 @@ async def test_pending_queue_infinite(make_scheduler):
     assert scheduler.pending_count == 2
 
 
-async def test_pending_queue_limit_wait(make_scheduler, loop):
+async def test_pending_queue_limit_wait(make_scheduler):
     scheduler = await make_scheduler(limit=1, pending_limit=1)
 
     async def coro(fut):
@@ -277,7 +272,7 @@ async def test_pending_queue_limit_wait(make_scheduler, loop):
 
     with pytest.raises(asyncio.TimeoutError):
         # try to wait for 1 sec to add task to pending queue
-        with timeout(1, loop=loop):
+        async with timeout(1):
             await scheduler.spawn(coro(fut3))
 
     assert scheduler.active_count == 1
@@ -372,7 +367,7 @@ async def test_concurrency_disabled(make_scheduler):
     assert scheduler.active_count == 0
 
 
-async def test_run_after_close(scheduler, loop):
+async def test_run_after_close(scheduler):
     async def f():
         pass
 
@@ -384,3 +379,10 @@ async def test_run_after_close(scheduler, loop):
 
     with pytest.warns(RuntimeWarning):
         del coro
+
+
+def test_scheduler_must_be_created_within_running_loop():
+    with pytest.raises(RuntimeError) as exc_info:
+        Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
+
+    assert exc_info.match("no (current|running) event loop")

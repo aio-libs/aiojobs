@@ -11,10 +11,10 @@ class Job:
     _explicit = False
     _task = None
 
-    def __init__(self, coro, scheduler, loop):
-        self._loop = loop
+    def __init__(self, coro, scheduler):
         self._coro = coro
         self._scheduler = scheduler
+        loop = asyncio.get_running_loop()
         self._started = loop.create_future()
 
         if loop.get_debug():
@@ -23,13 +23,13 @@ class Job:
     def __repr__(self):
         info = []
         if self._closed:
-            info.append('closed')
+            info.append("closed")
         elif self._task is None:
-            info.append('pending')
-        info = ' '.join(info)
+            info.append("pending")
+        info = " ".join(info)
         if info:
-            info += ' '
-        return '<Job {}coro=<{}>>'.format(info, self._coro)
+            info += " "
+        return f"<Job {info}coro=<{self._coro}>>"
 
     @property
     def active(self):
@@ -44,7 +44,7 @@ class Job:
         return self._closed
 
     async def _do_wait(self, timeout):
-        with async_timeout.timeout(timeout=timeout, loop=self._loop):
+        async with async_timeout.timeout(timeout):
             # TODO: add a test for waiting for a pending coro
             await self._started
             return await self._task
@@ -55,8 +55,7 @@ class Job:
         self._explicit = True
         scheduler = self._scheduler
         try:
-            return await asyncio.shield(self._do_wait(timeout),
-                                        loop=self._loop)
+            return await asyncio.shield(self._do_wait(timeout))
         except asyncio.CancelledError:
             # Don't stop inner coroutine on explicit cancel
             raise
@@ -79,24 +78,24 @@ class Job:
             # it prevents a warning like
             # RuntimeWarning: coroutine 'coro' was never awaited
             self._start()
-        if not self._task.done():
-            self._task.cancel()
+        self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
         try:
-            with async_timeout.timeout(timeout=timeout,
-                                       loop=self._loop):
+            async with async_timeout.timeout(timeout):
                 await self._task
         except asyncio.CancelledError:
             pass
         except asyncio.TimeoutError as exc:
             if self._explicit:
                 raise
-            context = {'message': "Job closing timed out",
-                       'job': self,
-                       'exception': exc}
+            context = {
+                "message": "Job closing timed out",
+                "job": self,
+                "exception": exc,
+            }
             if self._source_traceback is not None:
-                context['source_traceback'] = self._source_traceback
+                context["source_traceback"] = self._source_traceback
             scheduler.call_exception_handler(context)
         except Exception as exc:
             if self._explicit:
@@ -105,7 +104,7 @@ class Job:
 
     def _start(self):
         assert self._task is None
-        self._task = self._loop.create_task(self._coro)
+        self._task = asyncio.create_task(self._coro)
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
@@ -124,9 +123,7 @@ class Job:
         self._closed = True
 
     def _report_exception(self, exc):
-        context = {'message': "Job processing failed",
-                   'job': self,
-                   'exception': exc}
+        context = {"message": "Job processing failed", "job": self, "exception": exc}
         if self._source_traceback is not None:
-            context['source_traceback'] = self._source_traceback
+            context["source_traceback"] = self._source_traceback
         self._scheduler.call_exception_handler(context)

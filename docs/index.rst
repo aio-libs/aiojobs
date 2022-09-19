@@ -39,7 +39,7 @@ Usage example
        # gracefully close spawned jobs
        await scheduler.close()
 
-   asyncio.get_event_loop().run_until_complete(main())
+   asyncio.run(main())
 
 For further information read :ref:`aiojobs-quickstart`,
 :ref:`aiojobs-intro` and :ref:`aiojobs-api`.
@@ -82,10 +82,6 @@ a bug or have some suggestion in order to improve the library.
 
 Communication channels
 ----------------------
-
-*aio-libs* google group: https://groups.google.com/forum/#!forum/aio-libs
-
-Feel free to post your questions and ideas here.
 
 *Gitter Chat* https://gitter.im/aio-libs/Lobby
 
