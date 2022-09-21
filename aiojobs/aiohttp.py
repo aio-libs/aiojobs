@@ -29,7 +29,7 @@ async def spawn(request, coro):
 def atomic(coro):
     @wraps(coro)
     async def wrapper(request):
-        if isinstance(request_or_view, web.View):
+        if isinstance(request_or_view, View):
             # Class Based View decorated.
             request = request_or_view.request
         else:
