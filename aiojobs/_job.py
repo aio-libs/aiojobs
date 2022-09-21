@@ -51,7 +51,7 @@ class Job:
 
     async def wait(self, *, timeout=None):
         if self._closed:
-            return
+            raise asyncio.CancelledError("Job already closed")
         self._explicit = True
         scheduler = self._scheduler
         try:
