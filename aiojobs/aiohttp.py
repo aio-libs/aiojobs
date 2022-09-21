@@ -15,17 +15,11 @@ def get_scheduler(request):
 
 
 def get_scheduler_from_app(app):
-    try:
-        return app["AIOJOBS_SCHEDULER"]
-    except KeyError:
-        raise RuntimeError("Install aiojobs with the setup() function first.")
+    return app.get("AIOJOBS_SCHEDULER")
 
 
 def get_scheduler_from_request(request):
-    try:
-        return request.config_dict["AIOJOBS_SCHEDULER"]
-    except KeyError:
-        raise RuntimeError("Install aiojobs with the setup() function first.")
+    return request.config_dict.get("AIOJOBS_SCHEDULER")
 
 
 async def spawn(request, coro):
