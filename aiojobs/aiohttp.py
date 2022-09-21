@@ -15,11 +15,17 @@ def get_scheduler(request):
 
 
 def get_scheduler_from_app(app):
-    return app.get("AIOJOBS_SCHEDULER")
+    try:
+        return app["AIOJOBS_SCHEDULER"]
+    except KeyError:
+        raise RuntimeError("Install aiojobs with the setup() function first.")
 
 
 def get_scheduler_from_request(request):
-    return request.config_dict.get("AIOJOBS_SCHEDULER")
+    try:
+        return request.config_dict["AIOJOBS_SCHEDULER"]
+    except KeyError:
+        raise RuntimeError("Install aiojobs with the setup() function first.")
 
 
 async def spawn(request, coro):
@@ -29,11 +35,13 @@ async def spawn(request, coro):
 def atomic(coro):
     @wraps(coro)
     async def wrapper(request):
-        if isinstance(request, View):
+        if isinstance(request_or_view, web.View):
             # Class Based View decorated.
-            request = request.request
+            request = request_or_view.request
+        else:
+            request = request_or_view
 
-        job = await spawn(request, coro(request))
+        job = await spawn(request, coro(request_or_view))
         return await job.wait()
 
     return wrapper
