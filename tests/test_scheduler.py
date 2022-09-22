@@ -292,7 +292,7 @@ async def test_scheduler_concurrency_pending_limit(make_scheduler):
         for fut in futures:
             jobs.append(await scheduler.spawn(coro(fut)))
 
-    asyncio.create_task(spawn())
+    task = asyncio.create_task(spawn())
     await asyncio.sleep(0)
 
     assert len(scheduler) == 2
@@ -304,6 +304,8 @@ async def test_scheduler_concurrency_pending_limit(make_scheduler):
 
     for job in jobs:
         await job.wait()
+
+    await task
 
     assert len(scheduler) == 0
     assert scheduler.active_count == 0
