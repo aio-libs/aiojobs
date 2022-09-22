@@ -263,9 +263,11 @@ async def test_pending_queue_limit_wait(make_scheduler):
     fut3 = asyncio.Future()
 
     await scheduler.spawn(coro(fut1))
+    assert scheduler.active_count == 1
     assert scheduler.pending_count == 0
 
     await scheduler.spawn(coro(fut2))
+    assert scheduler.active_count == 1
     assert scheduler.pending_count == 1
 
     with pytest.raises(asyncio.TimeoutError):
@@ -273,7 +275,42 @@ async def test_pending_queue_limit_wait(make_scheduler):
         async with timeout(1):
             await scheduler.spawn(coro(fut3))
 
+    assert scheduler.active_count == 1
     assert scheduler.pending_count == 1
+
+
+async def test_scheduler_concurrency_pending_limit(make_scheduler):
+    scheduler = await make_scheduler(limit=1, pending_limit=1)
+
+    async def coro(fut):
+        await fut
+
+    futures = [asyncio.Future() for _ in range(3)]
+    jobs = []
+
+    async def spawn():
+        for fut in futures:
+            jobs.append(await scheduler.spawn(coro(fut)))
+
+    task = asyncio.create_task(spawn())
+    await asyncio.sleep(0)
+
+    assert len(scheduler) == 2
+    assert scheduler.active_count == 1
+    assert scheduler.pending_count == 1
+
+    for fut in futures:
+        fut.set_result(None)
+
+    for job in jobs:
+        await job.wait()
+
+    await task
+
+    assert len(scheduler) == 0
+    assert scheduler.active_count == 0
+    assert scheduler.pending_count == 0
+    assert all(job.closed for job in jobs)
 
 
 async def test_scheduler_concurrency_limit(make_scheduler):
