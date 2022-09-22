@@ -305,7 +305,7 @@ async def test_scheduler_concurrency_pending_limit(make_scheduler):
     for job in jobs:
         await job.wait()
 
-    assert not len(scheduler)
+    assert len(scheduler) == 0
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
     assert all(job.closed for job in jobs)
