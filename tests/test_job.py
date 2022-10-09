@@ -212,7 +212,8 @@ async def test_job_wait_closed(make_scheduler):
     await scheduler.spawn(coro2())
 
     await fut
-    await job.wait()
+    with pytest.raises(RuntimeError):
+        await job.wait()
 
 
 async def test_job_close_closed(make_scheduler):
