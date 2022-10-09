@@ -240,6 +240,9 @@ async def test_job_await_closed(scheduler) -> None:
     job = await scheduler.spawn(coro())
     assert not job._closed
 
+    # Let coro run.
+    await asyncio.sleep(0)
+    # Then let done callback run.
     await asyncio.sleep(0)
 
     assert job._closed
