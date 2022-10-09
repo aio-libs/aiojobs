@@ -239,7 +239,7 @@ async def test_job_await_closed(scheduler) -> None:
 
     job = await scheduler.spawn(coro())
     assert not job._closed
-    
+
     await asyncio.sleep(0)
 
     assert job._closed
@@ -253,7 +253,7 @@ async def test_job_await_explicit_close(scheduler) -> None:
 
     job = await scheduler.spawn(coro())
     assert not job._closed
-    
+
     await asyncio.sleep(0)
     await job.close()
 
