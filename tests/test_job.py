@@ -257,6 +257,7 @@ async def test_job_await_explicit_close(scheduler) -> None:
     job = await scheduler.spawn(coro())
     assert not job._closed
 
+    # Ensure coro() task is started before close().
     await asyncio.sleep(0)
     await job.close()
 
