@@ -1,13 +1,5 @@
 from functools import wraps
-from typing import (
-    Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Coroutine,
-    Optional,
-    TypeVar,
-)
+from typing import Any, AsyncIterator, Awaitable, Callable, Coroutine, Optional, TypeVar
 
 from aiohttp import web
 
