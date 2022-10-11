@@ -92,7 +92,6 @@ class Job(Generic[_T]):
             assert self._task is not None
         self._task.cancel()
         # self._scheduler is None after _done_callback()
-        assert self._scheduler is not None
         scheduler = self._scheduler
         try:
             async with async_timeout.timeout(timeout):
@@ -109,6 +108,8 @@ class Job(Generic[_T]):
             }
             if self._source_traceback is not None:
                 context["source_traceback"] = self._source_traceback
+            # scheduler is only None if job is finished, in which case there's no timeout.
+            assert self._scheduler is not None
             scheduler.call_exception_handler(context)
         except Exception as exc:
             if self._explicit:
