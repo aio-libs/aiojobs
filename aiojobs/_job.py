@@ -22,7 +22,7 @@ class Job(Generic[_T]):
 
         self._closed = False
         self._explicit = False
-        self._task: Optional[asyncio.Task[_T]] = None
+        self._task: Optional["asyncio.Task[_T]"] = None
 
         tb = traceback.extract_stack(sys._getframe(2)) if loop.get_debug() else None
         self._source_traceback = tb
@@ -121,7 +121,7 @@ class Job(Generic[_T]):
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
-    def _done_callback(self, task: asyncio.Task[_T]) -> None:
+    def _done_callback(self, task: "asyncio.Task[_T]") -> None:
         assert self._scheduler is not None
         scheduler = self._scheduler
         scheduler._done(self)
