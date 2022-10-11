@@ -1,7 +1,8 @@
 import asyncio
+from typing import Awaitable, Callable
 
 import pytest
-from aiohttp import web
+from aiohttp import ClientSession, web
 
 # isort: off
 
@@ -16,14 +17,16 @@ from aiojobs.aiohttp import (
 
 # isort: on
 
+_Client = Callable[[web.Application], Awaitable[ClientSession]]
 
-async def test_plugin(aiohttp_client):
+
+async def test_plugin(aiohttp_client: _Client) -> None:
     job = None
 
-    async def coro():
+    async def coro() -> None:
         await asyncio.sleep(10)
 
-    async def handler(request):
+    async def handler(request: web.Request) -> web.Response:
         nonlocal job
 
         job = await spawn(request, coro())
@@ -38,13 +41,14 @@ async def test_plugin(aiohttp_client):
     resp = await client.get("/")
     assert resp.status == 200
 
+    assert job is not None
     assert job.active
     await client.close()
     assert job.closed
 
 
-async def test_no_setup(aiohttp_client):
-    async def handler(request):
+async def test_no_setup(aiohttp_client: _Client) -> None:
+    async def handler(request: web.Request) -> web.Response:
         with pytest.raises(RuntimeError):
             get_scheduler(request)
         return web.Response()
@@ -57,9 +61,9 @@ async def test_no_setup(aiohttp_client):
     assert resp.status == 200
 
 
-async def test_atomic(aiohttp_client):
+async def test_atomic(aiohttp_client: _Client) -> None:
     @atomic
-    async def handler(request):
+    async def handler(request: web.Request) -> web.Response:
         await asyncio.sleep(0)
         return web.Response()
 
@@ -73,11 +77,12 @@ async def test_atomic(aiohttp_client):
 
     scheduler = get_scheduler_from_app(app)
 
+    assert scheduler is not None
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
 
-async def test_atomic_from_view(aiohttp_client):
+async def test_atomic_from_view(aiohttp_client: _Client) -> None:
     app = web.Application()
 
     class MyView(web.View):
@@ -95,18 +100,19 @@ async def test_atomic_from_view(aiohttp_client):
 
     scheduler = get_scheduler_from_app(app)
 
+    assert scheduler is not None
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
 
-async def test_nested_application(aiohttp_client):
+async def test_nested_application(aiohttp_client: _Client) -> None:
     app = web.Application()
     aiojobs_setup(app)
 
     app2 = web.Application()
 
     class MyView(web.View):
-        async def get(self):
+        async def get(self) -> web.Response:
             assert get_scheduler_from_request(self.request) == get_scheduler_from_app(
                 app
             )
@@ -120,7 +126,7 @@ async def test_nested_application(aiohttp_client):
     assert resp.status == 200
 
 
-async def test_nested_application_separate_scheduler(aiohttp_client):
+async def test_nested_application_separate_scheduler(aiohttp_client: _Client) -> None:
     app = web.Application()
     aiojobs_setup(app)
 
@@ -128,7 +134,7 @@ async def test_nested_application_separate_scheduler(aiohttp_client):
     aiojobs_setup(app2)
 
     class MyView(web.View):
-        async def get(self):
+        async def get(self) -> web.Response:
             assert get_scheduler_from_request(self.request) != get_scheduler_from_app(
                 app
             )
@@ -145,12 +151,12 @@ async def test_nested_application_separate_scheduler(aiohttp_client):
     assert resp.status == 200
 
 
-async def test_nested_application_not_set(aiohttp_client):
+async def test_nested_application_not_set(aiohttp_client: _Client) -> None:
     app = web.Application()
     app2 = web.Application()
 
     class MyView(web.View):
-        async def get(self):
+        async def get(self) -> web.Response:
             assert get_scheduler_from_request(self.request) is None
             return web.Response()
 
