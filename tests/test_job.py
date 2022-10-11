@@ -212,7 +212,8 @@ async def test_job_wait_closed(make_scheduler):
     await scheduler.spawn(coro2())
 
     await fut
-    await job.wait()
+    with pytest.raises(RuntimeError):
+        await job.wait()
 
 
 async def test_job_close_closed(make_scheduler):
@@ -230,3 +231,37 @@ async def test_job_close_closed(make_scheduler):
 
     await fut
     await job.close()
+
+
+async def test_job_await_closed(scheduler) -> None:
+    async def coro() -> int:
+        return 5
+
+    job = await scheduler.spawn(coro())
+    assert not job._closed
+
+    # Let coro run.
+    await asyncio.sleep(0)
+    # Then let done callback run.
+    await asyncio.sleep(0)
+
+    assert job._closed
+    assert job._task.done()
+    assert await job.wait() == 5
+
+
+async def test_job_await_explicit_close(scheduler) -> None:
+    async def coro() -> None:
+        await asyncio.sleep(1)
+
+    job = await scheduler.spawn(coro())
+    assert not job._closed
+
+    # Ensure coro() task is started before close().
+    await asyncio.sleep(0)
+    await job.close()
+
+    assert job._closed
+    assert job._task.done()
+    with pytest.raises(asyncio.CancelledError):
+        await job.wait()

@@ -51,7 +51,7 @@ class Job:
 
     async def wait(self, *, timeout=None):
         if self._closed:
-            return
+            return await self._task
         self._explicit = True
         scheduler = self._scheduler
         try:
