@@ -8,7 +8,6 @@ from typing import (
     Iterator,
     Optional,
     Set,
-    TypedDict,
     TypeVar,
 )
 
