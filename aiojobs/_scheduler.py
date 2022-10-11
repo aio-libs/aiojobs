@@ -1,6 +1,5 @@
 import asyncio
-from collections.abc import Collection
-from typing import Any, Callable, Coroutine, Dict, Iterator, Optional, Set, TypeVar
+from typing import Any, Callable, Collection, Coroutine, Dict, Iterator, Optional, Set, TypeVar
 
 from ._job import Job
 
