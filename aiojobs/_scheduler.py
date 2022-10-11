@@ -1,6 +1,16 @@
 import asyncio
 from collections.abc import Collection
-from typing import Any, Callable, Coroutine, Dict, Iterator, Optional, Set, TypedDict, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    Iterator,
+    Optional,
+    Set,
+    TypedDict,
+    TypeVar,
+)
 
 from ._job import Job
 
@@ -9,13 +19,21 @@ ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
 class Scheduler(Collection[Job[object]]):
-    def __init__(self, *, close_timeout: Optional[float], limit: Optional[int],
-                 pending_limit: int, exception_handler: Optional[ExceptionHandler]):
+    def __init__(
+        self,
+        *,
+        close_timeout: Optional[float],
+        limit: Optional[int],
+        pending_limit: int,
+        exception_handler: Optional[ExceptionHandler],
+    ):
         self._jobs: Set[Job[object]] = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_tasks: asyncio.Queue[Optional[asyncio.Task[object]]] = asyncio.Queue()
+        self._failed_tasks: asyncio.Queue[
+            Optional[asyncio.Task[object]]
+        ] = asyncio.Queue()
         self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
         self._closed = False

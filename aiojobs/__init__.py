@@ -10,9 +10,13 @@ from ._scheduler import ExceptionHandler, Scheduler
 
 __version__ = "1.0.0"
 
+
 async def create_scheduler(
-    *, close_timeout: Optional[float] = 0.1, limit: Optional[int] = 100,
-    pending_limit: int = 10000, exception_handler: Optional[ExceptionHandler] = None
+    *,
+    close_timeout: Optional[float] = 0.1,
+    limit: Optional[int] = 100,
+    pending_limit: int = 10000,
+    exception_handler: Optional[ExceptionHandler] = None
 ) -> Scheduler:
     if exception_handler is not None and not callable(exception_handler):
         raise TypeError(

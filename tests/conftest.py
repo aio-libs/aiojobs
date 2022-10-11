@@ -6,7 +6,9 @@ import pytest
 from aiojobs import create_scheduler
 from aiojobs._scheduler import Scheduler
 
-PARAMS: Dict[str, Any] = dict(close_timeout=1.0, limit=100, pending_limit=0, exception_handler=None)
+PARAMS: Dict[str, Any] = dict(
+    close_timeout=1.0, limit=100, pending_limit=0, exception_handler=None
+)
 
 
 @pytest.fixture

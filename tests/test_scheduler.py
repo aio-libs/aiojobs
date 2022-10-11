@@ -62,7 +62,9 @@ async def test_exception_in_explicit_waiting(make_scheduler: _MakeScheduler) -> 
     assert not exc_handler.called
 
 
-async def test_exception_non_waited_job(make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_exception_non_waited_job(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
@@ -84,7 +86,9 @@ async def test_exception_non_waited_job(make_scheduler: _MakeScheduler, event_lo
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_close(make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_exception_on_close(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
@@ -158,7 +162,9 @@ async def test_exception_handler_api(make_scheduler: _MakeScheduler) -> None:
     assert s3.exception_handler is None
 
 
-async def test_exception_handler_default(scheduler: Scheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_exception_handler_default(
+    scheduler: Scheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     handler = mock.Mock()
     event_loop.set_exception_handler(handler)
     d = {"a": "b"}
@@ -177,7 +183,9 @@ async def test_wait_with_timeout(scheduler: Scheduler) -> None:
     assert len(scheduler) == 0
 
 
-async def test_timeout_on_closing(make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_timeout_on_closing(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler, close_timeout=0.01)
     fut1: asyncio.Future[None] = asyncio.Future()
@@ -200,7 +208,9 @@ async def test_timeout_on_closing(make_scheduler: _MakeScheduler, event_loop: as
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_closing(make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_exception_on_closing(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     fut: asyncio.Future[None] = asyncio.Future()
@@ -282,7 +292,9 @@ async def test_pending_queue_limit_wait(make_scheduler: _MakeScheduler) -> None:
     assert scheduler.pending_count == 1
 
 
-async def test_scheduler_concurrency_pending_limit(make_scheduler: _MakeScheduler) -> None:
+async def test_scheduler_concurrency_pending_limit(
+    make_scheduler: _MakeScheduler,
+) -> None:
     scheduler = await make_scheduler(limit=1, pending_limit=1)
 
     async def coro(fut: asyncio.Future[object]) -> None:

@@ -162,7 +162,9 @@ async def test_job_close_timeout(make_scheduler: _MakeScheduler) -> None:
     assert not handler.called
 
 
-async def test_job_await_pending(make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_job_await_pending(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     scheduler = await make_scheduler(limit=1)
 
     fut: asyncio.Future[None] = asyncio.Future()
@@ -181,7 +183,9 @@ async def test_job_await_pending(make_scheduler: _MakeScheduler, event_loop: asy
     assert ret == 1
 
 
-async def test_job_cancel_awaiting(make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_job_cancel_awaiting(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     scheduler = await make_scheduler()
 
     fut = event_loop.create_future()
