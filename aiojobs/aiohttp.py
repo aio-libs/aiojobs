@@ -7,8 +7,6 @@ from typing import (
     Coroutine,
     Optional,
     TypeVar,
-    Union,
-    overload,
 )
 
 from aiohttp import web
