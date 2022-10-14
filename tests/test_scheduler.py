@@ -247,12 +247,12 @@ async def test_pending_limit(make_scheduler: _MakeScheduler) -> None:
 async def test_pending_queue_infinite(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro(fut: asyncio.Future[None]) -> None:
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await fut
 
-    fut1: asyncio.Future[None] = asyncio.Future()
-    fut2: asyncio.Future[None] = asyncio.Future()
-    fut3: asyncio.Future[None] = asyncio.Future()
+    fut1: "asyncio.Future[None]" = asyncio.Future()
+    fut2: "asyncio.Future[None]" = asyncio.Future()
+    fut3: "asyncio.Future[None]" = asyncio.Future()
 
     await scheduler.spawn(coro(fut1))
     assert scheduler.pending_count == 0
@@ -267,13 +267,13 @@ async def test_pending_queue_infinite(make_scheduler: _MakeScheduler) -> None:
 async def test_pending_queue_limit_wait(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1, pending_limit=1)
 
-    async def coro(fut: asyncio.Future[None]) -> None:
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await asyncio.sleep(0)
         await fut
 
-    fut1: asyncio.Future[None] = asyncio.Future()
-    fut2: asyncio.Future[None] = asyncio.Future()
-    fut3: asyncio.Future[None] = asyncio.Future()
+    fut1: "asyncio.Future[None]" = asyncio.Future()
+    fut2: "asyncio.Future[None]" = asyncio.Future()
+    fut3: "asyncio.Future[None]" = asyncio.Future()
 
     await scheduler.spawn(coro(fut1))
     assert scheduler.active_count == 1
@@ -297,10 +297,10 @@ async def test_scheduler_concurrency_pending_limit(
 ) -> None:
     scheduler = await make_scheduler(limit=1, pending_limit=1)
 
-    async def coro(fut: asyncio.Future[object]) -> None:
+    async def coro(fut: "asyncio.Future[object]") -> None:
         await fut
 
-    futures: List[asyncio.Future[object]] = [asyncio.Future() for _ in range(3)]
+    futures: List["asyncio.Future[object]"] = [asyncio.Future() for _ in range(3)]
     jobs = []
 
     async def spawn() -> None:
@@ -331,20 +331,20 @@ async def test_scheduler_concurrency_pending_limit(
 async def test_scheduler_concurrency_limit(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro(fut: asyncio.Future[None]) -> None:
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await fut
 
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
-    fut1: asyncio.Future[None] = asyncio.Future()
+    fut1: "asyncio.Future[None]" = asyncio.Future()
     job1 = await scheduler.spawn(coro(fut1))
 
     assert scheduler.active_count == 1
     assert scheduler.pending_count == 0
     assert job1.active
 
-    fut2: asyncio.Future[None] = asyncio.Future()
+    fut2: "asyncio.Future[None]" = asyncio.Future()
     job2 = await scheduler.spawn(coro(fut2))
 
     assert scheduler.active_count == 1
@@ -371,7 +371,7 @@ async def test_scheduler_concurrency_limit(make_scheduler: _MakeScheduler) -> No
 async def test_resume_closed_task(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro(fut: asyncio.Future[None]) -> None:
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await fut
 
     assert scheduler.active_count == 0
