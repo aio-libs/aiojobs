@@ -108,8 +108,9 @@ class Job(Generic[_T]):
             }
             if self._source_traceback is not None:
                 context["source_traceback"] = self._source_traceback
-            # scheduler is only None if job is finished, in which case there's no timeout.
-            assert self._scheduler is not None
+            # scheduler is only None if job was already finished, in which case
+            # there's no timeout. self._scheduler will now be None though.
+            assert scheduler is not None
             scheduler.call_exception_handler(context)
         except Exception as exc:
             if self._explicit:
