@@ -31,6 +31,9 @@ aiohttp = [
     "aiohttp >= 3.8.0"
 ]
 
+[tool.isort]
+profile = "black"
+
 [tool.towncrier]
 package = "aiojobs"
 filename = "CHANGES.rst"
