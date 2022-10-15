@@ -112,10 +112,9 @@ class Job(Generic[_T]):
             # there's no timeout. self._scheduler will now be None though.
             assert scheduler is not None
             scheduler.call_exception_handler(context)
-        except Exception as exc:
+        except Exception:
             if self._explicit:
                 raise
-            self._report_exception(exc)
 
     def _start(self) -> None:
         assert self._task is None
