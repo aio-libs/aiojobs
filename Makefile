@@ -7,7 +7,7 @@ all: test
 	@touch .install-deps
 
 .develop: .install-deps $(shell find aiojobs -type f)
-	@flit install --symlink
+	@pip install . -e
 	@touch .develop
 
 .PHONY: setup
