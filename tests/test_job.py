@@ -112,7 +112,7 @@ async def test_job_wait_exception(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(exception_handler=handler)
     exc = RuntimeError()
 
-    async def coro() -> None:
+    async def coro() -> NoReturn:
         raise exc
 
     job = await scheduler.spawn(coro())
@@ -275,3 +275,15 @@ async def test_job_await_explicit_close(scheduler: Scheduler) -> None:
     assert job._task.done()  # type: ignore[unreachable]
     with pytest.raises(asyncio.CancelledError):
         await job.wait()
+
+
+async def test_exception_handler_called_once(make_scheduler: _MakeScheduler) -> None:
+    handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=handler)
+
+    async def coro() -> NoReturn:
+        raise Exception()
+
+    job = await scheduler.spawn(coro())
+    await scheduler.close()
+    handler.assert_called_once()

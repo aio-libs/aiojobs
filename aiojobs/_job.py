@@ -115,7 +115,6 @@ class Job(Generic[_T]):
         except Exception as exc:
             if self._explicit:
                 raise
-            self._report_exception(exc)
 
     def _start(self) -> None:
         assert self._task is None
