@@ -8,20 +8,30 @@ API
 .. currentmodule:: aiojobs
 
 
-Instantiation
--------------
+Scheduler
+---------
 
-.. cofunction:: create_scheduler(*, close_timeout=0.1, limit=100, \
-                                 pending_limit=10000, \
-                                 exception_handler=None)
+.. class:: Scheduler(*, close_timeout=0.1, limit=100, \
+                     pending_limit=10000, exception_handler=None)
 
-   Create a new :class:`Scheduler`.
+   A container for managed jobs.
+
+   Jobs are created by :meth:`spawn()`.
+
+   :meth:`close` should be used for finishing all scheduled jobs.
+
+   The class implements :class:`collections.abc.Collection` contract,
+   jobs could be iterated etc.: ``len(scheduler)``, ``for job in
+   scheduler``, ``job in scheduler`` operations are supported.
+
+   Class must be instantiated within a running event loop (e.g. in an
+   ``async`` function).
 
    * *close_timeout* is a timeout for job closing, ``0.1`` by default.
      If job's closing time takes more than timeout a
      message is logged by :meth:`Scheduler.call_exception_handler`.
 
-   * *limit* is a for jobs spawned by scheduler, ``100`` by
+   * *limit* is a limit for jobs spawned by scheduler, ``100`` by
      default.
 
    * *pending_limit* is a limit for amount of jobs awaiting starting,
@@ -44,29 +54,10 @@ Instantiation
      for everybody, user should pass a value suitable for his
      environment anyway.
 
-
-Scheduler
----------
-
-.. class:: Scheduler
-
-   A container for managed jobs.
-
-   Jobs are created by :meth:`spawn()`.
-
-   :meth:`close` should be used for finishing all scheduled jobs.
-
-   The class implements :class:`collections.abc.Collection` contract,
-   jobs could be iterated etc.: ``len(scheduler)``, ``for job in
-   scheduler``, ``job in scheduler`` operations are supported.
-
-   User should never instantiate the class but call
-   :func:`create_scheduler` async function.
-
    .. attribute:: limit
 
       Concurrency limit (``100`` by default) or ``None`` if the limit
-      is disabled. See :func:`create_scheduler` for setting the attribute.
+      is disabled.
 
    .. attribute:: pending_limit
 
@@ -135,7 +126,7 @@ Scheduler
       By default calls
       :meth:`asyncio.AbstractEventLoop.call_exception_handler`, the
       behavior could be overridden by passing *exception_handler*
-      parameter into :func:`create_scheduler`.
+      parameter into :class:`Scheduler`.
 
       *context* is a :class:`dict` with the following keys:
 
@@ -213,8 +204,7 @@ jobs.
    closing it on web server shutdown.
 
    * *app* - :class:`aiohttp.web.Application` instance.
-   * *kwargs* - additional named parameters passed to
-     :func:`aiojobs.create_scheduler`.
+   * *kwargs* - additional named parameters passed to :class:`aiojobs.Scheduler`.
 
 .. cofunction:: spawn(request, coro)
 
