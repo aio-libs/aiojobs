@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, AsyncIterator, Awaitable, Callable, Coroutine, Optional, TypeVar
+from typing import Any, AsyncIterator, Awaitable, Callable, Coroutine, Optional, TypeVar, Union
 
 from aiohttp import web
 
@@ -10,7 +10,7 @@ from ._scheduler import Scheduler
 __all__ = ("setup", "spawn", "get_scheduler", "get_scheduler_from_app", "atomic")
 
 _T = TypeVar("_T")
-_RequestView = TypeVar("_RequestView", web.Request, web.View)
+_RequestView = TypeVar("_RequestView", bound=Union[web.Request, web.View])
 
 # TODO(aiohttp 3.9+): Use AppKey
 
@@ -43,8 +43,8 @@ def atomic(
             # Class Based View decorated.
             request = request_or_view.request
         else:
-            # https://github.com/python/mypy/issues/13843
-            request = request_or_view  # type: ignore[unreachable]
+            # https://github.com/python/mypy/issues/13896
+            request = request_or_view  # type: ignore[assignment]
 
         job = await spawn(request, coro(request_or_view))
         return await job.wait()
