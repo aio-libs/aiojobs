@@ -7,6 +7,7 @@ asyncio applications.
 import warnings
 from typing import Optional
 
+from ._job import Job
 from ._scheduler import ExceptionHandler, Scheduler
 
 __version__ = "1.0.0"
@@ -34,4 +35,4 @@ async def create_scheduler(
     )
 
 
-__all__ = ("Scheduler", "create_scheduler")
+__all__ = ("Job", "Scheduler", "create_scheduler")
