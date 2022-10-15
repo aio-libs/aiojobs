@@ -4,16 +4,20 @@ The library gives controlled way for scheduling background tasks for
 asyncio applications.
 
 """
+from typing import Optional
 
+from ._scheduler import ExceptionHandler, Scheduler
 
 __version__ = "1.0.0"
 
-from ._scheduler import Scheduler
-
 
 async def create_scheduler(
-    *, close_timeout=0.1, limit=100, pending_limit=10000, exception_handler=None
-):
+    *,
+    close_timeout: Optional[float] = 0.1,
+    limit: Optional[int] = 100,
+    pending_limit: int = 10000,
+    exception_handler: Optional[ExceptionHandler] = None
+) -> Scheduler:
     if exception_handler is not None and not callable(exception_handler):
         raise TypeError(
             "A callable object or None is expected, "
@@ -27,4 +31,4 @@ async def create_scheduler(
     )
 
 
-__all__ = ("create_scheduler",)
+__all__ = ("Scheduler", "create_scheduler")

@@ -1,12 +1,17 @@
 import asyncio
 from contextlib import suppress
+from typing import Awaitable, Callable, NoReturn
 from unittest import mock
 
 import pytest
 
+from aiojobs._scheduler import Scheduler
 
-async def test_job_spawned(scheduler):
-    async def coro():
+_MakeScheduler = Callable[..., Awaitable[Scheduler]]
+
+
+async def test_job_spawned(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         pass
 
     job = await scheduler.spawn(coro())
@@ -20,8 +25,8 @@ async def test_job_spawned(scheduler):
     assert repr(job).endswith(">")
 
 
-async def test_job_awaited(scheduler):
-    async def coro():
+async def test_job_awaited(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         pass
 
     job = await scheduler.spawn(coro())
@@ -34,8 +39,8 @@ async def test_job_awaited(scheduler):
     assert "pending" not in repr(job)
 
 
-async def test_job_closed(scheduler):
-    async def coro():
+async def test_job_closed(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         pass
 
     job = await scheduler.spawn(coro())
@@ -48,13 +53,13 @@ async def test_job_closed(scheduler):
     assert "pending" not in repr(job)
 
 
-async def test_job_pending(make_scheduler):
+async def test_job_pending(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro1():
+    async def coro1() -> None:
         await asyncio.sleep(10)
 
-    async def coro2():
+    async def coro2() -> None:
         pass
 
     await scheduler.spawn(coro1())
@@ -68,13 +73,13 @@ async def test_job_pending(make_scheduler):
 
 
 # Mangle a name for satisfy 'pending' not in repr check
-async def test_job_resume_after_p_e_nding(make_scheduler):
+async def test_job_resume_after_p_e_nding(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro1():
+    async def coro1() -> None:
         await asyncio.sleep(10)
 
-    async def coro2():
+    async def coro2() -> None:
         pass
 
     job1 = await scheduler.spawn(coro1())
@@ -89,11 +94,11 @@ async def test_job_resume_after_p_e_nding(make_scheduler):
     assert "pending" not in repr(job2)
 
 
-async def test_job_wait_result(make_scheduler):
+async def test_job_wait_result(make_scheduler: _MakeScheduler) -> None:
     handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=handler)
 
-    async def coro():
+    async def coro() -> int:
         return 1
 
     job = await scheduler.spawn(coro())
@@ -102,12 +107,12 @@ async def test_job_wait_result(make_scheduler):
     assert not handler.called
 
 
-async def test_job_wait_exception(make_scheduler):
+async def test_job_wait_exception(make_scheduler: _MakeScheduler) -> None:
     handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=handler)
     exc = RuntimeError()
 
-    async def coro():
+    async def coro() -> None:
         raise exc
 
     job = await scheduler.spawn(coro())
@@ -117,13 +122,13 @@ async def test_job_wait_exception(make_scheduler):
     assert not handler.called
 
 
-async def test_job_close_exception(make_scheduler):
+async def test_job_close_exception(make_scheduler: _MakeScheduler) -> None:
     handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=handler)
     exc = RuntimeError()
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
 
-    async def coro():
+    async def coro() -> NoReturn:
         fut.set_result(None)
         raise exc
 
@@ -135,14 +140,14 @@ async def test_job_close_exception(make_scheduler):
     assert not handler.called
 
 
-async def test_job_close_timeout(make_scheduler):
+async def test_job_close_timeout(make_scheduler: _MakeScheduler) -> None:
     handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=handler, close_timeout=0.01)
 
-    fut1 = asyncio.Future()
-    fut2 = asyncio.Future()
+    fut1: asyncio.Future[None] = asyncio.Future()
+    fut2: asyncio.Future[None] = asyncio.Future()
 
-    async def coro():
+    async def coro() -> None:
         fut1.set_result(None)
         try:
             await asyncio.sleep(10)
@@ -157,15 +162,17 @@ async def test_job_close_timeout(make_scheduler):
     assert not handler.called
 
 
-async def test_job_await_pending(make_scheduler, event_loop):
+async def test_job_await_pending(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
 
-    async def coro1():
+    async def coro1() -> None:
         await fut
 
-    async def coro2():
+    async def coro2() -> int:
         return 1
 
     await scheduler.spawn(coro1())
@@ -176,12 +183,14 @@ async def test_job_await_pending(make_scheduler, event_loop):
     assert ret == 1
 
 
-async def test_job_cancel_awaiting(make_scheduler, event_loop):
+async def test_job_cancel_awaiting(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     scheduler = await make_scheduler()
 
     fut = event_loop.create_future()
 
-    async def f():
+    async def f() -> None:
         await fut
 
     job = await scheduler.spawn(f())
@@ -198,14 +207,14 @@ async def test_job_cancel_awaiting(make_scheduler, event_loop):
     fut.set_result(None)
 
 
-async def test_job_wait_closed(make_scheduler):
+async def test_job_wait_closed(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
 
-    async def coro1():
+    async def coro1() -> NoReturn:
         raise RuntimeError()
 
-    async def coro2():
+    async def coro2() -> None:
         fut.set_result(None)
 
     job = await scheduler.spawn(coro1())
@@ -216,14 +225,14 @@ async def test_job_wait_closed(make_scheduler):
         await job.wait()
 
 
-async def test_job_close_closed(make_scheduler):
+async def test_job_close_closed(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
 
-    async def coro1():
+    async def coro1() -> NoReturn:
         raise RuntimeError()
 
-    async def coro2():
+    async def coro2() -> None:
         fut.set_result(None)
 
     job = await scheduler.spawn(coro1())
@@ -233,7 +242,7 @@ async def test_job_close_closed(make_scheduler):
     await job.close()
 
 
-async def test_job_await_closed(scheduler) -> None:
+async def test_job_await_closed(scheduler: Scheduler) -> None:
     async def coro() -> int:
         return 5
 
@@ -246,11 +255,12 @@ async def test_job_await_closed(scheduler) -> None:
     await asyncio.sleep(0)
 
     assert job._closed
-    assert job._task.done()
+    # https://github.com/python/mypy/issues/11853
+    assert job._task.done()  # type: ignore[unreachable]
     assert await job.wait() == 5
 
 
-async def test_job_await_explicit_close(scheduler) -> None:
+async def test_job_await_explicit_close(scheduler: Scheduler) -> None:
     async def coro() -> None:
         await asyncio.sleep(1)
 
@@ -262,6 +272,6 @@ async def test_job_await_explicit_close(scheduler) -> None:
     await job.close()
 
     assert job._closed
-    assert job._task.done()
+    assert job._task.done()  # type: ignore[unreachable]
     with pytest.raises(asyncio.CancelledError):
         await job.wait()

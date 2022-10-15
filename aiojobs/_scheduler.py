@@ -1,63 +1,85 @@
 import asyncio
-from collections.abc import Collection
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Coroutine,
+    Dict,
+    Iterator,
+    Optional,
+    Set,
+    TypeVar,
+)
 
 from ._job import Job
 
+_T = TypeVar("_T")
+ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
-class Scheduler(Collection):
-    def __init__(self, *, close_timeout, limit, pending_limit, exception_handler):
-        self._jobs = set()
+
+class Scheduler(Collection[Job[object]]):
+    def __init__(
+        self,
+        *,
+        close_timeout: Optional[float],
+        limit: Optional[int],
+        pending_limit: int,
+        exception_handler: Optional[ExceptionHandler],
+    ):
+        self._jobs: Set[Job[object]] = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_tasks = asyncio.Queue()
+        self._failed_tasks: asyncio.Queue[
+            Optional[asyncio.Task[object]]
+        ] = asyncio.Queue()
         self._failed_task = asyncio.create_task(self._wait_failed())
-        self._pending = asyncio.Queue(maxsize=pending_limit)
+        self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
         self._closed = False
 
-    def __iter__(self):
-        return iter(list(self._jobs))
+    def __iter__(self) -> Iterator[Job[Any]]:
+        return iter(self._jobs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._jobs)
 
-    def __contains__(self, job):
-        return job in self._jobs
+    def __contains__(self, obj: object) -> bool:
+        return obj in self._jobs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         info = []
         if self._closed:
             info.append("closed")
-        info = " ".join(info)
-        if info:
-            info += " "
-        return f"<Scheduler {info}jobs={len(self)}>"
+        state = " ".join(info)
+        if state:
+            state += " "
+        return f"<Scheduler {state}jobs={len(self)}>"
 
     @property
-    def limit(self):
+    def limit(self) -> Optional[int]:
         return self._limit
 
     @property
-    def pending_limit(self):
+    def pending_limit(self) -> int:
         return self._pending.maxsize
 
     @property
-    def close_timeout(self):
+    def close_timeout(self) -> Optional[float]:
         return self._close_timeout
 
     @property
-    def active_count(self):
+    def active_count(self) -> int:
         return len(self._jobs) - self._pending.qsize()
 
     @property
-    def pending_count(self):
+    def pending_count(self) -> int:
         return self._pending.qsize()
 
     @property
-    def closed(self):
+    def closed(self) -> bool:
         return self._closed
 
-    async def spawn(self, coro):
+    async def spawn(self, coro: Coroutine[object, object, _T]) -> Job[_T]:
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
         job = Job(coro, self)
@@ -74,7 +96,7 @@ class Scheduler(Collection):
         self._jobs.add(job)
         return job
 
-    async def close(self):
+    async def close(self) -> None:
         if self._closed:
             return
         self._closed = True  # prevent adding new jobs
@@ -93,7 +115,7 @@ class Scheduler(Collection):
         self._failed_tasks.put_nowait(None)
         await self._failed_task
 
-    def call_exception_handler(self, context):
+    def call_exception_handler(self, context: Dict[str, Any]) -> None:
         handler = self._exception_handler
         if handler is None:
             handler = asyncio.get_running_loop().call_exception_handler(context)
@@ -101,16 +123,16 @@ class Scheduler(Collection):
             handler(self, context)
 
     @property
-    def exception_handler(self):
+    def exception_handler(self) -> Optional[ExceptionHandler]:
         return self._exception_handler
 
-    def _done(self, job):
+    def _done(self, job: Job[object]) -> None:
         self._jobs.discard(job)
         if not self.pending_count:
             return
         # No pending jobs when limit is None
         # Safe to subtract.
-        ntodo = self._limit - self.active_count
+        ntodo = self._limit - self.active_count  # type: ignore[operator]
         i = 0
         while i < ntodo:
             if not self.pending_count:
@@ -121,7 +143,7 @@ class Scheduler(Collection):
             new_job._start()
             i += 1
 
-    async def _wait_failed(self):
+    async def _wait_failed(self) -> None:
         # a coroutine for waiting failed tasks
         # without awaiting for failed tasks async raises a warning
         while True:

@@ -1,4 +1,5 @@
 import asyncio
+from typing import Awaitable, Callable, List, NoReturn
 from unittest import mock
 
 import pytest
@@ -6,13 +7,15 @@ from async_timeout import timeout
 
 from aiojobs import Scheduler
 
+_MakeScheduler = Callable[..., Awaitable[Scheduler]]
 
-def test_ctor(scheduler):
+
+def test_ctor(scheduler: Scheduler) -> None:
     assert len(scheduler) == 0
 
 
-async def test_spawn(scheduler):
-    async def coro():
+async def test_spawn(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         await asyncio.sleep(1)
 
     job = await scheduler.spawn(coro())
@@ -23,8 +26,8 @@ async def test_spawn(scheduler):
     assert job in scheduler
 
 
-async def test_run_retval(scheduler):
-    async def coro():
+async def test_run_retval(scheduler: Scheduler) -> None:
+    async def coro() -> int:
         return 1
 
     job = await scheduler.spawn(coro())
@@ -38,11 +41,11 @@ async def test_run_retval(scheduler):
     assert job not in scheduler
 
 
-async def test_exception_in_explicit_waiting(make_scheduler):
+async def test_exception_in_explicit_waiting(make_scheduler: _MakeScheduler) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
 
-    async def coro():
+    async def coro() -> NoReturn:
         await asyncio.sleep(0)
         raise RuntimeError()
 
@@ -59,12 +62,14 @@ async def test_exception_in_explicit_waiting(make_scheduler):
     assert not exc_handler.called
 
 
-async def test_exception_non_waited_job(make_scheduler, event_loop):
+async def test_exception_non_waited_job(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
 
-    async def coro():
+    async def coro() -> NoReturn:
         await asyncio.sleep(0)
         raise exc
 
@@ -81,14 +86,16 @@ async def test_exception_non_waited_job(make_scheduler, event_loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_close(make_scheduler, event_loop):
+async def test_exception_on_close(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
 
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
 
-    async def coro():
+    async def coro() -> NoReturn:
         fut.set_result(None)
         raise exc
 
@@ -105,15 +112,15 @@ async def test_exception_on_close(make_scheduler, event_loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_close_timeout(make_scheduler):
+async def test_close_timeout(make_scheduler: _MakeScheduler) -> None:
     s1 = await make_scheduler()
     assert s1.close_timeout == 0.1
     s2 = await make_scheduler(close_timeout=1)
     assert s2.close_timeout == 1
 
 
-async def test_scheduler_repr(scheduler):
-    async def coro():
+async def test_scheduler_repr(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         await asyncio.sleep(1)
 
     assert repr(scheduler) == "<Scheduler jobs=0>"
@@ -125,8 +132,8 @@ async def test_scheduler_repr(scheduler):
     assert repr(scheduler) == "<Scheduler closed jobs=0>"
 
 
-async def test_close_jobs(scheduler):
-    async def coro():
+async def test_close_jobs(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         await asyncio.sleep(1)
 
     assert not scheduler.closed
@@ -135,12 +142,12 @@ async def test_close_jobs(scheduler):
     await scheduler.close()
     assert job.closed
     assert scheduler.closed
-    assert len(scheduler) == 0
+    assert len(scheduler) == 0  # type: ignore[unreachable]
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
 
-async def test_exception_handler_api(make_scheduler):
+async def test_exception_handler_api(make_scheduler: _MakeScheduler) -> None:
     s1 = await make_scheduler()
     assert s1.exception_handler is None
 
@@ -155,7 +162,9 @@ async def test_exception_handler_api(make_scheduler):
     assert s3.exception_handler is None
 
 
-async def test_exception_handler_default(scheduler, event_loop):
+async def test_exception_handler_default(
+    scheduler: Scheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     handler = mock.Mock()
     event_loop.set_exception_handler(handler)
     d = {"a": "b"}
@@ -163,8 +172,8 @@ async def test_exception_handler_default(scheduler, event_loop):
     handler.assert_called_with(event_loop, d)
 
 
-async def test_wait_with_timeout(scheduler):
-    async def coro():
+async def test_wait_with_timeout(scheduler: Scheduler) -> None:
+    async def coro() -> None:
         await asyncio.sleep(1)
 
     job = await scheduler.spawn(coro())
@@ -174,13 +183,15 @@ async def test_wait_with_timeout(scheduler):
     assert len(scheduler) == 0
 
 
-async def test_timeout_on_closing(make_scheduler, event_loop):
+async def test_timeout_on_closing(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler, close_timeout=0.01)
-    fut1 = asyncio.Future()
-    fut2 = asyncio.Future()
+    fut1: asyncio.Future[None] = asyncio.Future()
+    fut2: asyncio.Future[None] = asyncio.Future()
 
-    async def coro():
+    async def coro() -> None:
         try:
             await fut1
         except asyncio.CancelledError:
@@ -197,13 +208,15 @@ async def test_timeout_on_closing(make_scheduler, event_loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_closing(make_scheduler, event_loop):
+async def test_exception_on_closing(
+    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
+) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
     exc = RuntimeError()
 
-    async def coro():
+    async def coro() -> NoReturn:
         fut.set_result(None)
         raise exc
 
@@ -217,29 +230,29 @@ async def test_exception_on_closing(make_scheduler, event_loop):
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_limit(make_scheduler):
+async def test_limit(make_scheduler: _MakeScheduler) -> None:
     s1 = await make_scheduler()
     assert s1.limit == 100
     s2 = await make_scheduler(limit=2)
     assert s2.limit == 2
 
 
-async def test_pending_limit(make_scheduler):
+async def test_pending_limit(make_scheduler: _MakeScheduler) -> None:
     s1 = await make_scheduler()
     assert s1.pending_limit == 10000
     s2 = await make_scheduler(pending_limit=2)
     assert s2.pending_limit == 2
 
 
-async def test_pending_queue_infinite(make_scheduler):
+async def test_pending_queue_infinite(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro(fut):
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await fut
 
-    fut1 = asyncio.Future()
-    fut2 = asyncio.Future()
-    fut3 = asyncio.Future()
+    fut1: "asyncio.Future[None]" = asyncio.Future()
+    fut2: "asyncio.Future[None]" = asyncio.Future()
+    fut3: "asyncio.Future[None]" = asyncio.Future()
 
     await scheduler.spawn(coro(fut1))
     assert scheduler.pending_count == 0
@@ -251,16 +264,16 @@ async def test_pending_queue_infinite(make_scheduler):
     assert scheduler.pending_count == 2
 
 
-async def test_pending_queue_limit_wait(make_scheduler):
+async def test_pending_queue_limit_wait(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1, pending_limit=1)
 
-    async def coro(fut):
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await asyncio.sleep(0)
         await fut
 
-    fut1 = asyncio.Future()
-    fut2 = asyncio.Future()
-    fut3 = asyncio.Future()
+    fut1: "asyncio.Future[None]" = asyncio.Future()
+    fut2: "asyncio.Future[None]" = asyncio.Future()
+    fut3: "asyncio.Future[None]" = asyncio.Future()
 
     await scheduler.spawn(coro(fut1))
     assert scheduler.active_count == 1
@@ -279,16 +292,18 @@ async def test_pending_queue_limit_wait(make_scheduler):
     assert scheduler.pending_count == 1
 
 
-async def test_scheduler_concurrency_pending_limit(make_scheduler):
+async def test_scheduler_concurrency_pending_limit(
+    make_scheduler: _MakeScheduler,
+) -> None:
     scheduler = await make_scheduler(limit=1, pending_limit=1)
 
-    async def coro(fut):
+    async def coro(fut: "asyncio.Future[object]") -> None:
         await fut
 
-    futures = [asyncio.Future() for _ in range(3)]
+    futures: List["asyncio.Future[object]"] = [asyncio.Future() for _ in range(3)]
     jobs = []
 
-    async def spawn():
+    async def spawn() -> None:
         for fut in futures:
             jobs.append(await scheduler.spawn(coro(fut)))
 
@@ -313,23 +328,23 @@ async def test_scheduler_concurrency_pending_limit(make_scheduler):
     assert all(job.closed for job in jobs)
 
 
-async def test_scheduler_concurrency_limit(make_scheduler):
+async def test_scheduler_concurrency_limit(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro(fut):
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await fut
 
     assert scheduler.active_count == 0
     assert scheduler.pending_count == 0
 
-    fut1 = asyncio.Future()
+    fut1: "asyncio.Future[None]" = asyncio.Future()
     job1 = await scheduler.spawn(coro(fut1))
 
     assert scheduler.active_count == 1
     assert scheduler.pending_count == 0
     assert job1.active
 
-    fut2 = asyncio.Future()
+    fut2: "asyncio.Future[None]" = asyncio.Future()
     job2 = await scheduler.spawn(coro(fut2))
 
     assert scheduler.active_count == 1
@@ -353,20 +368,20 @@ async def test_scheduler_concurrency_limit(make_scheduler):
     assert job2.closed
 
 
-async def test_resume_closed_task(make_scheduler):
+async def test_resume_closed_task(make_scheduler: _MakeScheduler) -> None:
     scheduler = await make_scheduler(limit=1)
 
-    async def coro(fut):
+    async def coro(fut: "asyncio.Future[None]") -> None:
         await fut
 
     assert scheduler.active_count == 0
 
-    fut1 = asyncio.Future()
+    fut1: asyncio.Future[None] = asyncio.Future()
     job1 = await scheduler.spawn(coro(fut1))
 
     assert scheduler.active_count == 1
 
-    fut2 = asyncio.Future()
+    fut2: asyncio.Future[None] = asyncio.Future()
     job2 = await scheduler.spawn(coro(fut2))
 
     assert scheduler.active_count == 1
@@ -382,13 +397,13 @@ async def test_resume_closed_task(make_scheduler):
     assert len(scheduler) == 0
 
 
-async def test_concurrency_disabled(make_scheduler):
-    fut1 = asyncio.Future()
-    fut2 = asyncio.Future()
+async def test_concurrency_disabled(make_scheduler: _MakeScheduler) -> None:
+    fut1: asyncio.Future[None] = asyncio.Future()
+    fut2: asyncio.Future[None] = asyncio.Future()
 
     scheduler = await make_scheduler(limit=None)
 
-    async def coro():
+    async def coro() -> None:
         fut1.set_result(None)
         await fut2
 
@@ -401,8 +416,8 @@ async def test_concurrency_disabled(make_scheduler):
     assert scheduler.active_count == 0
 
 
-async def test_run_after_close(scheduler):
-    async def f():
+async def test_run_after_close(scheduler: Scheduler) -> None:
+    async def f() -> None:
         pass
 
     await scheduler.close()
@@ -415,7 +430,7 @@ async def test_run_after_close(scheduler):
         del coro
 
 
-def test_scheduler_must_be_created_within_running_loop():
+def test_scheduler_must_be_created_within_running_loop() -> None:
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
 
