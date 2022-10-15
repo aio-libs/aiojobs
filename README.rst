@@ -14,10 +14,10 @@ aiojobs
     :target: https://gitter.im/aio-libs/Lobby
     :alt: Chat on Gitter
 
-Jobs scheduler for managing background task (asyncio)
+Job scheduler for managing background tasks (asyncio)
 
 
-The library gives controlled way for scheduling background tasks for
+The library gives a controlled way for scheduling background tasks for
 asyncio applications.
 
 Installation
