@@ -284,6 +284,6 @@ async def test_exception_handler_called_once(make_scheduler: _MakeScheduler) -> 
     async def coro() -> NoReturn:
         raise Exception()
 
-    job = await scheduler.spawn(coro())
+    await scheduler.spawn(coro())
     await scheduler.close()
     handler.assert_called_once()
