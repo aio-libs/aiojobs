@@ -12,7 +12,6 @@ from typing import (
 
 from aiohttp import web
 
-from . import create_scheduler
 from ._job import Job
 from ._scheduler import Scheduler
 
@@ -63,7 +62,7 @@ def atomic(
 
 def setup(app: web.Application, **kwargs: Any) -> None:
     async def cleanup_context(app: web.Application) -> AsyncIterator[None]:
-        app["AIOJOBS_SCHEDULER"] = scheduler = await create_scheduler(**kwargs)
+        app["AIOJOBS_SCHEDULER"] = scheduler = Scheduler(**kwargs)
         yield
         await scheduler.close()
 

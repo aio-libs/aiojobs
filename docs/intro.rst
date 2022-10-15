@@ -55,7 +55,7 @@ Scheduler's jobs could be enumerated and closed.
 
 There is simple usage example::
 
-   scheduler = await aiojobs.create_scheduler()
+   scheduler = aiojobs.Scheduler()
 
    job = await scheduler.spawn(f())
 
@@ -88,9 +88,8 @@ It prevents a program over-flooding by running a billion of jobs at
 the same time.
 
 The limit could be relaxed by passing *limit* parameter into
-:func:`create_scheduler`: ``await
-aiojobs.create_scheduler(limit=100000)`` or even disabled by
-``limit=None``.
+:class:`Scheduler`: ``aiojobs.Scheduler(limit=100000)`` or even
+disabled by ``limit=None``.
 
 Graceful Shutdown
 -----------------
@@ -103,8 +102,8 @@ The call has a timeout for waiting for close:
 If spawned job's closing time takes more than timeout a message is logged by
 :meth:`Scheduler.call_exception_handler`.
 
-Close timeout could be overridden by :func:`create_scheduler`: ``await
-aiojobs.create_scheduler(close_timeout=10)``
+Close timeout could be overridden in :class:`Scheduler`:
+``aiojobs.Scheduler(close_timeout=10)``
 
 
 Introspection

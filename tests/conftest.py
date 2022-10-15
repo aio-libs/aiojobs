@@ -3,8 +3,7 @@ from typing import Any, AsyncIterator, Awaitable, Callable, Dict
 
 import pytest
 
-from aiojobs import create_scheduler
-from aiojobs._scheduler import Scheduler
+from aiojobs import Scheduler
 
 PARAMS: Dict[str, Any] = dict(
     close_timeout=1.0, limit=100, pending_limit=0, exception_handler=None
@@ -23,7 +22,7 @@ async def make_scheduler() -> AsyncIterator[Callable[..., Awaitable[Scheduler]]]
     schedulers = []
 
     async def maker(**kwargs: Any) -> Scheduler:
-        ret = await create_scheduler(**kwargs)
+        ret = Scheduler(**kwargs)
         schedulers.append(ret)
         return ret
 

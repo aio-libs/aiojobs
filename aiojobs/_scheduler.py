@@ -21,11 +21,17 @@ class Scheduler(Collection[Job[object]]):
     def __init__(
         self,
         *,
-        close_timeout: Optional[float],
-        limit: Optional[int],
-        pending_limit: int,
-        exception_handler: Optional[ExceptionHandler],
+        close_timeout: Optional[float] = 0.1,
+        limit: Optional[int] = 100,
+        pending_limit: int = 10000,
+        exception_handler: Optional[ExceptionHandler] = None,
     ):
+        if exception_handler is not None and not callable(exception_handler):
+            raise TypeError(
+                "A callable object or None is expected, "
+                "got {!r}".format(exception_handler)
+            )
+
         self._jobs: Set[Job[object]] = set()
         self._close_timeout = close_timeout
         self._limit = limit

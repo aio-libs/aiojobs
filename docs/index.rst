@@ -28,7 +28,7 @@ Usage example
        await asyncio.sleep(timeout)
 
    async def main():
-       scheduler = await aiojobs.create_scheduler()
+       scheduler = aiojobs.Scheduler()
        for i in range(100):
            # spawn jobs
            await scheduler.spawn(coro(i/10))
