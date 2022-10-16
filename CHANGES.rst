@@ -14,6 +14,31 @@ Changelog
 
 .. towncrier release notes start
 
+1.1.0 (2022-10-16)
+==================
+
+Features
+--------
+
+- Complete type annotations have been added. (`#352 <https://github.com/aio-libs/aiojobs/pull/352>`_)
+- ``Scheduler`` can (and should be) instantiated directly. (`#353 <https://github.com/aio-libs/aiojobs/pull/353>`_)
+- ``Job`` is also exported by default now, to aid type annotations. (`#355 <https://github.com/aio-libs/aiojobs/pull/355>`_)
+
+Bugfixes
+--------
+
+- Fix scheduler blocking forever when pending limit is reached. (`#135 <https://github.com/aio-libs/aiojobs/pull/135>`_)
+- Fix @atomic wrapper not passing ``self`` to methods. (`#344 <https://github.com/aio-libs/aiojobs/pull/344>`_)
+- ``Job.wait()`` now returns the task value if the job is already closed. (`#343 <https://github.com/aio-libs/aiojobs/pull/343>`_)
+- Fix ``exception_handler`` being called twice in some situations. (`#354 < https://github.com/aio-libs/aiojobs/pull/354`_)
+
+Deprecations and Removals
+-------------------------
+
+- Dropped Python 3.6 support. (`#338 <https://github.com/aio-libs/aiojobs/pull/338>`_)
+- ``create_scheduler()`` is deprecated and will be removed in v2. (`#353 <https://github.com/aio-libs/aiojobs/pull/353>`_)
+
+
 1.0.0 (2021-11-09)
 ==================
 
