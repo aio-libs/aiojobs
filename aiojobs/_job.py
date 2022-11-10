@@ -133,7 +133,7 @@ class Job(Generic[_T]):
         else:
             if exc is not None and not self._explicit:
                 self._report_exception(exc)
-                scheduler._failed_tasks.put_nowait(task)  # type: ignore[arg-type]
+                scheduler._failed_tasks.put_nowait(task)
         self._scheduler = None  # drop backref
         self._closed = True
 
