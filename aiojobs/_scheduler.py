@@ -122,11 +122,10 @@ class Scheduler(Collection[Job[object]]):
         await self._failed_task
 
     def call_exception_handler(self, context: Dict[str, Any]) -> None:
-        handler = self._exception_handler
-        if handler is None:
-            handler = asyncio.get_running_loop().call_exception_handler(context)
+        if self._exception_handler is None:
+            asyncio.get_running_loop().call_exception_handler(context)
         else:
-            handler(self, context)
+            self._exception_handler(self, context)
 
     @property
     def exception_handler(self) -> Optional[ExceptionHandler]:
