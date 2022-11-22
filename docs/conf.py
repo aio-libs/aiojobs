@@ -31,20 +31,17 @@ _version_path = os.path.abspath(
 )
 _version_info = None
 with codecs.open(_version_path, "r", "latin1") as fp:
-    try:
-        match = re.search(
-            r'^__version__ = "'
-            r"(?P<major>\d+)"
-            r"\.(?P<minor>\d+)"
-            r"\.(?P<patch>\d+)"
-            r'(?P<tag>.*)?"$',
-            fp.read(),
-            re.M,
-        )
-        if match is not None:
-            _version_info = match.groupdict()
-    except IndexError:
-        pass
+    match = re.search(
+        r'^__version__ = "'
+        r"(?P<major>\d+)"
+        r"\.(?P<minor>\d+)"
+        r"\.(?P<patch>\d+)"
+        r'(?P<tag>.*)?"$',
+        fp.read(),
+        re.M,
+    )
+    if match is not None:
+        _version_info = match.groupdict()
 
 if _version_info is None:
     raise RuntimeError("Unable to determine version.")
