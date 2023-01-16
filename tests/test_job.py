@@ -287,3 +287,11 @@ async def test_exception_handler_called_once(make_scheduler: _MakeScheduler) -> 
     await scheduler.spawn(coro())
     await scheduler.close()
     handler.assert_called_once()
+
+
+async def test_job_name_set(scheduler: Scheduler) -> None:
+    async def coro() -> None:
+        await asyncio.sleep(1)
+
+    job = await scheduler.spawn(coro(), name="test_job_name")
+    assert job.name == "test_job_name"

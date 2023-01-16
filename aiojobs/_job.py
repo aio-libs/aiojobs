@@ -14,9 +14,15 @@ _T = TypeVar("_T", covariant=True)
 
 
 class Job(Generic[_T]):
-    def __init__(self, coro: Coroutine[object, object, _T], scheduler: Scheduler):
+    def __init__(
+        self,
+        coro: Coroutine[object, object, _T],
+        scheduler: Scheduler,
+        name: Optional[str] = None,
+    ):
         self._coro = coro
         self._scheduler: Optional[Scheduler] = scheduler
+        self._name: Optional[str] = name
         loop = asyncio.get_running_loop()
         self._started = loop.create_future()
 
@@ -49,6 +55,10 @@ class Job(Generic[_T]):
     @property
     def closed(self) -> bool:
         return self._closed
+
+    @property
+    def name(self) -> str:
+        return self._task.get_name() if self._task else self._name
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
         async with async_timeout.timeout(timeout):
@@ -118,7 +128,7 @@ class Job(Generic[_T]):
 
     def _start(self) -> None:
         assert self._task is None
-        self._task = asyncio.create_task(self._coro)
+        self._task = asyncio.create_task(self._coro, name=self._name)
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
