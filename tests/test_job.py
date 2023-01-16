@@ -294,5 +294,5 @@ async def test_job_name_set(scheduler: Scheduler) -> None:
         """Dummy function."""
 
     job = await scheduler.spawn(coro(), name="test_job_name")
-    assert job.name == "test_job_name"
+    assert job.get_name() == "test_job_name"
     assert job._task.get_name() == "test_job_name"

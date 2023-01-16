@@ -127,7 +127,10 @@ class Job(Generic[_T]):
 
     def _start(self) -> None:
         assert self._task is None
-        self._task = asyncio.create_task(self._coro, name=self._name)
+        if sys.version_info >= (3, 8):
+            self._task = asyncio.create_task(self._coro, name=self._name)
+        else:
+            self._task = asyncio.create_task(self._coro)
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
