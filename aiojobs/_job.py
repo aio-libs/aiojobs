@@ -56,8 +56,7 @@ class Job(Generic[_T]):
     def closed(self) -> bool:
         return self._closed
 
-    @property
-    def name(self) -> str:
+    def get_name(self) -> str:
         return self._task.get_name() if self._task else self._name
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
