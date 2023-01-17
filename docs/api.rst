@@ -210,7 +210,8 @@ jobs.
    * *app* - :class:`aiohttp.web.Application` instance.
    * *kwargs* - additional named parameters passed to :class:`aiojobs.Scheduler`.
 
-.. cofunction:: spawn(request, coro)
+.. function:: spawn(request, coro)
+      :async:
 
    Spawn a new job using scheduler registered into ``request.app``,
    or a parent :attr:`aiohttp.web.Application`.
