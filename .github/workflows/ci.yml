@@ -77,13 +77,14 @@ jobs:
         run: pytest --cov-branch --cov=aiojobs --cov-report=term tests
 
   check:  # This job does nothing and is only used for the branch protection
-    name: Check
+    if: always()
     needs: [docs, lint, test]
     runs-on: ubuntu-latest
     steps:
-      - name: Report success of the test matrix
-        run: |
-          echo "All's good"
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
 
   deploy:
     name: Deploy
