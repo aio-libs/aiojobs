@@ -83,7 +83,8 @@ Scheduler
 
       ``True`` if scheduler is closed (:meth:`close` called).
 
-   .. comethod:: spawn(coro)
+   .. py:method:: spawn(coro)
+      :async:
 
       Spawn a new job for execution *coro* coroutine.
 
@@ -102,7 +103,8 @@ Scheduler
 
          The method respects :attr:`pending_limit` now.
 
-   .. comethod:: close()
+   .. py:method:: close()
+      :async:
 
       Close scheduler and all its jobs.
 
@@ -168,7 +170,8 @@ Job
 
       Job is finished.
 
-   .. comethod:: wait(*, timeout=None)
+   .. py:method:: wait(*, timeout=None)
+      :async:
 
       Wait for job finishing.
 
@@ -176,7 +179,8 @@ Job
 
       The job is in *closed* state after finishing the method.
 
-   .. comethod:: close(*, timeout=None)
+   .. py:method:: close(*, timeout=None)
+      :async:
 
       Close the job.
 
@@ -206,7 +210,8 @@ jobs.
    * *app* - :class:`aiohttp.web.Application` instance.
    * *kwargs* - additional named parameters passed to :class:`aiojobs.Scheduler`.
 
-.. cofunction:: spawn(request, coro)
+.. function:: spawn(request, coro)
+      :async:
 
    Spawn a new job using scheduler registered into ``request.app``,
    or a parent :attr:`aiohttp.web.Application`.
