@@ -1,10 +1,12 @@
 import asyncio
+import sys
 from contextlib import suppress
 from typing import Awaitable, Callable, NoReturn
 from unittest import mock
 
 import pytest
 
+from aiojobs._job import Job
 from aiojobs._scheduler import Scheduler
 
 _MakeScheduler = Callable[..., Awaitable[Scheduler]]
@@ -289,10 +291,25 @@ async def test_exception_handler_called_once(make_scheduler: _MakeScheduler) -> 
     handler.assert_called_once()
 
 
-async def test_job_name_set(scheduler: Scheduler) -> None:
+async def test_get_job_name(scheduler: Scheduler) -> None:
     async def coro() -> None:
         """Dummy function."""
 
     job = await scheduler.spawn(coro(), name="test_job_name")
     assert job.get_name() == "test_job_name"
-    assert job._task.get_name() == "test_job_name"
+    if sys.version_info >= (3, 8):
+        assert job._task.get_name() == "test_job_name"
+    # check default name generation
+    job2 = Job(coro, scheduler)
+    assert job2.get_name() == (f"Job({job2._coro})")
+
+
+async def test_set_job_name(scheduler: Scheduler) -> None:
+    async def coro() -> None:
+        """Dummy function."""
+
+    job = await scheduler.spawn(coro(), name="original_name")
+    job.set_name("changed_name")
+    assert job.get_name() == "changed_name"
+    if sys.version_info >= (3, 8):
+        assert job._task.get_name() == "changed_name"

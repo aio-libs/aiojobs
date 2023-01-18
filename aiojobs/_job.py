@@ -57,7 +57,18 @@ class Job(Generic[_T]):
         return self._closed
 
     def get_name(self) -> str:
-        return self._task.get_name() if self._task else self._name
+        name = self._name
+        if sys.version_info >= (3, 8) and self._task:
+            name = self._task.get_name()
+        if name is None:
+            # Return generated default name
+            name = f"Job({self._coro})"
+        return name
+
+    def set_name(self, name):
+        if sys.version_info >= (3, 8):
+            return self._task.set_name(name)
+        self._name = name
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
         async with async_timeout.timeout(timeout):
