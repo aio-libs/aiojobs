@@ -298,10 +298,14 @@ async def test_get_job_name(scheduler: Scheduler) -> None:
     job = await scheduler.spawn(coro(), name="test_job_name")
     assert job.get_name() == "test_job_name"
     if sys.version_info >= (3, 8):
+        assert job._task is not None
         assert job._task.get_name() == "test_job_name"
     # check default name generation
-    job2 = Job(coro, scheduler)
-    assert job2.get_name() == (f"Job({job2._coro})")
+    job2: Job[object] = await scheduler.spawn(coro())
+    if sys.version_info >= (3, 8):
+        assert job2.get_name().startswith("Task-")
+    else:
+        assert job2.get_name() == f"Job({job2._coro})"
 
 
 async def test_set_job_name(scheduler: Scheduler) -> None:
@@ -312,4 +316,5 @@ async def test_set_job_name(scheduler: Scheduler) -> None:
     job.set_name("changed_name")
     assert job.get_name() == "changed_name"
     if sys.version_info >= (3, 8):
+        assert job._task is not None
         assert job._task.get_name() == "changed_name"
