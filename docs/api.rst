@@ -200,7 +200,7 @@ For using the project with *aiohttp* server a scheduler should be
 installed into app and new function should be used for spawning new
 jobs.
 
-.. function:: setup(app, **kwargs)
+.. function:: setup(app, graceful_timeout,  **kwargs)
 
    Register :attr:`aiohttp.web.Application.on_startup` and
    :attr:`aiohttp.web.Application.on_cleanup` hooks for creating
@@ -208,6 +208,8 @@ jobs.
    closing it on web server shutdown.
 
    * *app* - :class:`aiohttp.web.Application` instance.
+   * *graceful_timeout* - :class:`float` how many seconds should be wait
+     before the scheduler begin stopping.
    * *kwargs* - additional named parameters passed to :class:`aiojobs.Scheduler`.
 
 .. function:: spawn(request, coro)

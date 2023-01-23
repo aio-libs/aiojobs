@@ -1,3 +1,4 @@
+import asyncio
 from functools import wraps
 from typing import (
     Any,
@@ -60,10 +61,17 @@ def atomic(
     return wrapper
 
 
-def setup(app: web.Application, **kwargs: Any) -> None:
+def setup(
+    app: web.Application, graceful_timeout: Optional[float] = None, **kwargs: Any
+) -> None:
     async def cleanup_context(app: web.Application) -> AsyncIterator[None]:
         app["AIOJOBS_SCHEDULER"] = scheduler = Scheduler(**kwargs)
         yield
+        if graceful_timeout and scheduler._jobs:
+            await asyncio.gather(
+                *[job.wait(timeout=graceful_timeout) for job in scheduler._jobs],
+                return_exceptions=True,
+            )
         await scheduler.close()
 
     app.cleanup_ctx.append(cleanup_context)

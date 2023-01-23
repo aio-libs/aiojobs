@@ -59,7 +59,7 @@ Integration with aiohttp.web
 
    app = web.Application()
    app.router.add_get('/', handler)
-   setup(app)
+   setup(app, graceful_timeout=60.0)
 
 or just
 

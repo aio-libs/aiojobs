@@ -1,8 +1,8 @@
 import asyncio
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Optional
 
 import pytest
-from aiohttp import ClientSession, web
+from aiohttp import ClientSession, ClientTimeout, web
 
 # isort: off
 
@@ -166,3 +166,46 @@ async def test_nested_application_not_set(aiohttp_client: _Client) -> None:
     client = await aiohttp_client(app)
     resp = await client.get("/sub/")
     assert resp.status == 200
+
+
+@pytest.mark.parametrize(
+    "graceful_timeout, result", [(None, False), (2.0, True), (1.0, False)]
+)
+async def test_graceful_shutdown(
+    aiohttp_client: _Client,
+    graceful_timeout: float,
+    result: bool,
+) -> None:
+    futs = []
+
+    class MyView(web.View):
+        @atomic
+        async def get(self) -> web.Response:
+            fut = asyncio.Future()
+            futs.append(fut)
+            await asyncio.sleep(app.sleep)
+            fut.set_result(None)
+            return web.Response(text=self.request.method)
+
+    async def send_request_with_timeout(timeout: Optional[float] = None):
+        try:
+            await client.get("/", timeout=ClientTimeout(total=timeout))
+        except asyncio.TimeoutError:
+            pass
+
+    app = web.Application()
+    app.router.add_route("*", "/", MyView)
+    aiojobs_setup(app, graceful_timeout=graceful_timeout)
+
+    client = await aiohttp_client(app)
+
+    app.sleep = 3.0
+    await send_request_with_timeout(timeout=1.0)
+
+    app.sleep = 0
+    await send_request_with_timeout()
+
+    await app.cleanup()
+
+    assert len(futs)
+    assert all([fut.done() for fut in futs]) == result
