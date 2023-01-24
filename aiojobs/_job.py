@@ -56,11 +56,15 @@ class Job(Generic[_T]):
     def closed(self) -> bool:
         return self._closed
 
-    def get_name(self) -> str:
-        name = self._name
+    def get_name(self) -> Optional[str]:
+        """Get the task name.
+
+        See https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.get_name.
+        Returns None if no name was set on the Job object and job has not yet started
+        """
         if sys.version_info >= (3, 8) and self._task:
-            name = self._task.get_name()
-        return name or f"Job({self._coro})"
+            return self._task.get_name()
+        return self._name
 
     def set_name(self, name: str) -> None:
         if sys.version_info >= (3, 8) and self._task is not None:

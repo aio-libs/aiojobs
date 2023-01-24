@@ -303,9 +303,11 @@ async def test_get_job_name(scheduler: Scheduler) -> None:
     # check default name generation
     job2: Job[object] = await scheduler.spawn(coro())
     if sys.version_info >= (3, 8):
-        assert job2.get_name().startswith("Task-")
+        job_name = job2.get_name()
+        assert job_name is not None
+        assert job_name.startswith("Task-")
     else:
-        assert job2.get_name() == f"Job({job2._coro})"
+        assert job2.get_name() is None
 
 
 async def test_set_job_name(scheduler: Scheduler) -> None:
