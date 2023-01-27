@@ -6,7 +6,6 @@ from unittest import mock
 
 import pytest
 
-from aiojobs._job import Job
 from aiojobs._scheduler import Scheduler
 
 _MakeScheduler = Callable[..., Awaitable[Scheduler]]
