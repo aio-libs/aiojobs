@@ -300,14 +300,19 @@ async def test_get_job_name(scheduler: Scheduler) -> None:
     if sys.version_info >= (3, 8):
         assert job._task is not None
         assert job._task.get_name() == "test_job_name"
-    # check default name generation
-    job2: Job[object] = await scheduler.spawn(coro())
+
+
+async def test_get_default_job_name(scheduler: Scheduler) -> None:
+    async def coro() -> None:
+        """Dummy function."""
+
+    job = await scheduler.spawn(coro())
     if sys.version_info >= (3, 8):
-        job_name = job2.get_name()
+        job_name = job.get_name()
         assert job_name is not None
         assert job_name.startswith("Task-")
     else:
-        assert job2.get_name() is None
+        assert job.get_name() is None
 
 
 async def test_set_job_name(scheduler: Scheduler) -> None:
