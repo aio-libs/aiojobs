@@ -67,10 +67,9 @@ class Job(Generic[_T]):
         return self._name
 
     def set_name(self, name: str) -> None:
+        self._name = name
         if sys.version_info >= (3, 8) and self._task is not None:
-            return self._task.set_name(name)
-        else:
-            self._name = name
+            self._task.set_name(name)
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
         async with async_timeout.timeout(timeout):
