@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from contextlib import suppress
 from typing import Awaitable, Callable, NoReturn
 from unittest import mock
@@ -287,3 +288,39 @@ async def test_exception_handler_called_once(make_scheduler: _MakeScheduler) -> 
     await scheduler.spawn(coro())
     await scheduler.close()
     handler.assert_called_once()
+
+
+async def test_get_job_name(scheduler: Scheduler) -> None:
+    async def coro() -> None:
+        """Dummy function."""
+
+    job = await scheduler.spawn(coro(), name="test_job_name")
+    assert job.get_name() == "test_job_name"
+    if sys.version_info >= (3, 8):
+        assert job._task is not None
+        assert job._task.get_name() == "test_job_name"
+
+
+async def test_get_default_job_name(scheduler: Scheduler) -> None:
+    async def coro() -> None:
+        """Dummy function."""
+
+    job = await scheduler.spawn(coro())
+    if sys.version_info >= (3, 8):
+        job_name = job.get_name()
+        assert job_name is not None
+        assert job_name.startswith("Task-")
+    else:
+        assert job.get_name() is None
+
+
+async def test_set_job_name(scheduler: Scheduler) -> None:
+    async def coro() -> None:
+        """Dummy function."""
+
+    job = await scheduler.spawn(coro(), name="original_name")
+    job.set_name("changed_name")
+    assert job.get_name() == "changed_name"
+    if sys.version_info >= (3, 8):
+        assert job._task is not None
+        assert job._task.get_name() == "changed_name"

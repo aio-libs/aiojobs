@@ -85,10 +85,12 @@ class Scheduler(Collection[Job[object]]):
     def closed(self) -> bool:
         return self._closed
 
-    async def spawn(self, coro: Coroutine[object, object, _T]) -> Job[_T]:
+    async def spawn(
+        self, coro: Coroutine[object, object, _T], name: Optional[str] = None
+    ) -> Job[_T]:
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
-        job = Job(coro, self)
+        job = Job(coro, self, name=name)
         should_start = self._limit is None or self.active_count < self._limit
         if should_start:
             job._start()
