@@ -60,7 +60,7 @@ class Job(Generic[_T]):
         """Get the task name.
 
         See https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.get_name.
-        Returns None if no name was set on the Job object and job has not yet started
+        Returns None if no name was set on the Job object and job has not yet started.
         """
         if sys.version_info >= (3, 8) and self._task:
             return self._task.get_name()
