@@ -22,7 +22,7 @@ class Job(Generic[_T]):
     ):
         self._coro = coro
         self._scheduler: Optional[Scheduler] = scheduler
-        self._name: Optional[str] = name
+        self._name = name
         loop = asyncio.get_running_loop()
         self._started = loop.create_future()
 
