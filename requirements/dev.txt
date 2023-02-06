@@ -1,5 +1,5 @@
 -r ci.txt
 -r doc.txt
-mypy==0.991
+mypy==1.0.0
 pre-commit==3.0.4
 pytest-sugar==0.9.6
