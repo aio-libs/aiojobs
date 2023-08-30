@@ -14,6 +14,13 @@ Changelog
 
 .. towncrier release notes start
 
+1.2.0 (2023-08-30)
+==================
+
+- ``Scheduler.spawn()`` now accepts a ``name`` parameter, similar to ``asyncio.create_task()``. (`#385 <https://github.com/aio-libs/aiojobs/pull/385>`_)
+- Removed async-timeout dependency on Python 3.11+. (`#443 <https://github.com/aio-libs/aiojobs/pull/443>`_)
+- Dropped Python 3.7 support.
+
 1.1.0 (2022-10-16)
 ==================
 
