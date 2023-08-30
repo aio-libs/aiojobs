@@ -4,9 +4,9 @@ import traceback
 from typing import TYPE_CHECKING, Coroutine, Generic, Optional, TypeVar
 
 if sys.version_info >= (3, 11):
-    from asyncio import timeout
+    from asyncio import timeout as asyncio_timeout
 else:
-    from async_timeout import timeout  # noqa: F401
+    from async_timeout import timeout as asyncio_timeout  # noqa: F401
 
 if TYPE_CHECKING:
     from ._scheduler import Scheduler
@@ -73,7 +73,7 @@ class Job(Generic[_T]):
             self._task.set_name(name)
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
-        async with timeout(timeout):
+        async with asyncio_timeout(timeout):
             # TODO: add a test for waiting for a pending coro
             await self._started
             assert self._task is not None  # Task should have been created before this.
@@ -116,7 +116,7 @@ class Job(Generic[_T]):
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
         try:
-            async with timeout(timeout):
+            async with asyncio_timeout(timeout):
                 await self._task
         except asyncio.CancelledError:
             pass
