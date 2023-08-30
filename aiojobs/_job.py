@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Coroutine, Generic, Optional, TypeVar
 if sys.version_info >= (3, 11):
     from asyncio import timeout
 else:
-    from async_timeout import timeout
+    from async_timeout import timeout  # noqa: F401
 
 if TYPE_CHECKING:
     from ._scheduler import Scheduler
