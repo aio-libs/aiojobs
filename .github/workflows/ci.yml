@@ -61,6 +61,7 @@ jobs:
            - pyver: "3.12"
              experimental: true
       fail-fast: true
+    continue-on-error: ${{ matrix.experimental }}
     steps:
       - name: Checkhout
         uses: actions/checkout@v2.4.0
