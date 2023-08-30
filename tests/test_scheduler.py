@@ -8,9 +8,9 @@ import pytest
 from aiojobs import Scheduler
 
 if sys.version_info >= (3, 11):
-    from asyncio import timeout
+    from asyncio import timeout as asyncio_timeout
 else:
-    from async_timeout import timeout
+    from async_timeout import timeout as asyncio_timeout
 
 _MakeScheduler = Callable[..., Awaitable[Scheduler]]
 
@@ -290,7 +290,7 @@ async def test_pending_queue_limit_wait(make_scheduler: _MakeScheduler) -> None:
 
     with pytest.raises(asyncio.TimeoutError):
         # try to wait for 1 sec to add task to pending queue
-        async with timeout(1):
+        async with asyncio_timeout(1):
             await scheduler.spawn(coro(fut3))
 
     assert scheduler.active_count == 1
