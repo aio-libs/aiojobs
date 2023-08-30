@@ -62,13 +62,11 @@ class Job(Generic[_T]):
         See https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.get_name.
         Returns None if no name was set on the Job object and job has not yet started.
         """
-        if sys.version_info >= (3, 8) and self._task:
-            return self._task.get_name()
-        return self._name
+        return self._task.get_name() if self._task else self._name
 
     def set_name(self, name: str) -> None:
         self._name = name
-        if sys.version_info >= (3, 8) and self._task is not None:
+        if self._task is not None:
             self._task.set_name(name)
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
@@ -139,10 +137,7 @@ class Job(Generic[_T]):
 
     def _start(self) -> None:
         assert self._task is None
-        if sys.version_info >= (3, 8):
-            self._task = asyncio.create_task(self._coro, name=self._name)
-        else:
-            self._task = asyncio.create_task(self._coro)
+        self._task = asyncio.create_task(self._coro, name=self._name)
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
