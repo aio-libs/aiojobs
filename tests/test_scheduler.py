@@ -1,11 +1,16 @@
 import asyncio
+import sys
 from typing import Awaitable, Callable, List, NoReturn
 from unittest import mock
 
 import pytest
-from async_timeout import timeout
 
 from aiojobs import Scheduler
+
+if sys.version_info >= (3, 11):
+    from asyncio import timeout
+else:
+    from async_timeout import timeout
 
 _MakeScheduler = Callable[..., Awaitable[Scheduler]]
 
