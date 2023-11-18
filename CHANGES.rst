@@ -14,6 +14,11 @@ Changelog
 
 .. towncrier release notes start
 
+1.2.1 (2023-11-18)
+==================
+
+- Use ``aiohttp.web.AppKey`` for aiohttp integration.
+
 1.2.0 (2023-08-30)
 ==================
 
