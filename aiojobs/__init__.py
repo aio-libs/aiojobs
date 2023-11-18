@@ -10,7 +10,7 @@ from typing import Optional
 from ._job import Job
 from ._scheduler import ExceptionHandler, Scheduler
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 
 async def create_scheduler(
