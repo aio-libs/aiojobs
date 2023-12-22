@@ -67,9 +67,7 @@ async def test_exception_in_explicit_waiting(make_scheduler: _MakeScheduler) -> 
     assert not exc_handler.called
 
 
-async def test_exception_non_waited_job(
-    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
-) -> None:
+async def test_exception_non_waited_job(make_scheduler: _MakeScheduler) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
@@ -86,14 +84,12 @@ async def test_exception_non_waited_job(
     assert len(scheduler) == 0
 
     expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
-    if event_loop.get_debug():
+    if asyncio.get_running_loop().get_debug():
         expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_close(
-    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
-) -> None:
+async def test_exception_on_close(make_scheduler: _MakeScheduler) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     exc = RuntimeError()
@@ -112,7 +108,7 @@ async def test_exception_on_close(
     assert len(scheduler) == 0
 
     expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
-    if event_loop.get_debug():
+    if asyncio.get_running_loop().get_debug():
         expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
@@ -167,10 +163,9 @@ async def test_exception_handler_api(make_scheduler: _MakeScheduler) -> None:
     assert s3.exception_handler is None
 
 
-async def test_exception_handler_default(
-    scheduler: Scheduler, event_loop: asyncio.AbstractEventLoop
-) -> None:
+async def test_exception_handler_default(scheduler: Scheduler) -> None:
     handler = mock.Mock()
+    event_loop = asyncio.get_running_loop()
     event_loop.set_exception_handler(handler)
     d = {"a": "b"}
     scheduler.call_exception_handler(d)
@@ -188,9 +183,7 @@ async def test_wait_with_timeout(scheduler: Scheduler) -> None:
     assert len(scheduler) == 0
 
 
-async def test_timeout_on_closing(
-    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
-) -> None:
+async def test_timeout_on_closing(make_scheduler: _MakeScheduler) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler, close_timeout=0.01)
     fut1: asyncio.Future[None] = asyncio.Future()
@@ -208,14 +201,12 @@ async def test_timeout_on_closing(
     assert job.closed
     assert fut1.cancelled()
     expect = {"message": "Job closing timed out", "job": job, "exception": mock.ANY}
-    if event_loop.get_debug():
+    if asyncio.get_running_loop().get_debug():
         expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
 
-async def test_exception_on_closing(
-    make_scheduler: _MakeScheduler, event_loop: asyncio.AbstractEventLoop
-) -> None:
+async def test_exception_on_closing(make_scheduler: _MakeScheduler) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
     fut: asyncio.Future[None] = asyncio.Future()
@@ -230,7 +221,7 @@ async def test_exception_on_closing(
     await scheduler.close()
     assert job.closed
     expect = {"message": "Job processing failed", "job": job, "exception": exc}
-    if event_loop.get_debug():
+    if asyncio.get_running_loop().get_debug():
         expect["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(scheduler, expect)
 
