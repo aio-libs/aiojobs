@@ -165,7 +165,8 @@ async def test_exception_handler_api(make_scheduler: _MakeScheduler) -> None:
 
 async def test_exception_handler_default(scheduler: Scheduler) -> None:
     handler = mock.Mock()
-    asyncio.get_running_loop().set_exception_handler(handler)
+    event_loop = asyncio.get_running_loop()
+    event_loop.set_exception_handler(handler)
     d = {"a": "b"}
     scheduler.call_exception_handler(d)
     handler.assert_called_with(event_loop, d)
