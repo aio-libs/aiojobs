@@ -2,4 +2,4 @@
 -r doc.txt
 mypy==1.8.0
 pre-commit==3.6.0
-pytest-sugar==0.9.7
+pytest-sugar==1.0.0
