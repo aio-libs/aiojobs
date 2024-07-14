@@ -11,7 +11,7 @@ from typing import (
     Optional,
     Set,
     TypeVar,
-    Union
+    Union,
 )
 
 from ._job import Job
@@ -153,7 +153,6 @@ class Scheduler(Collection[Job[object]]):
                 else:
                     outer.set_result(inner.result())
 
-
         def _outer_done_callback(outer):
             if not inner.done():
                 inner.remove_done_callback(_inner_done_callback)
@@ -168,7 +167,7 @@ class Scheduler(Collection[Job[object]]):
                 await asyncio.gather(
                     *(job.wait() for job in self._jobs),
                     *self._shields,
-                    return_exceptions=True
+                    return_exceptions=True,
                 )
         await self.close()
 
