@@ -22,7 +22,7 @@ else:
     from async_timeout import timeout as asyncio_timeout
 
 _T = TypeVar("_T")
-_FutureLike = Union[asyncio.Future[_T], Awaitable[_T]]
+_FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
