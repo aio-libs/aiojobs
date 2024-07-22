@@ -27,9 +27,9 @@ _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
-def _get_loop(
+def _get_loop(  # pragma: no cov
     fut: "asyncio.Task[object]",
-) -> asyncio.AbstractEventLoop:  # pragma: no cov
+) -> asyncio.AbstractEventLoop:
     # https://github.com/python/cpython/blob/bb802db8cfa35a88582be32fae05fe1cf8f237b1/Lib/asyncio/futures.py#L300
     try:
         get_loop = fut.get_loop
@@ -168,11 +168,12 @@ class Scheduler(Collection[Job[object]]):
         with suppress(asyncio.TimeoutError):
             async with asyncio_timeout(timeout):
                 while self._jobs or self._shields:
-                    await asyncio.gather(
+                    gather = asyncio.gather(
                         *(job.wait() for job in self._jobs),
                         *self._shields,
                         return_exceptions=True,
                     )
+                    await asyncio.shield(gather)
         await self.close()
 
     async def close(self) -> None:
