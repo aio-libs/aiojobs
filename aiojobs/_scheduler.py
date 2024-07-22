@@ -125,7 +125,7 @@ class Scheduler(Collection[Job[object]]):
         self._jobs.add(job)
         return job
 
-    def shield(self, arg: _FutureLike[_T]) -> asyncio.Future[_T]:
+    def shield(self, arg: _FutureLike[_T]) -> "asyncio.Future[_T]":
         inner = asyncio.ensure_future(arg)
         if inner.done():
             return inner
