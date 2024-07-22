@@ -57,9 +57,9 @@ class Scheduler(Collection[Job[object]]):
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_tasks: asyncio.Queue[
-            Optional[asyncio.Task[object]]
-        ] = asyncio.Queue()
+        self._failed_tasks: asyncio.Queue[Optional[asyncio.Task[object]]] = (
+            asyncio.Queue()
+        )
         self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
         self._closed = False

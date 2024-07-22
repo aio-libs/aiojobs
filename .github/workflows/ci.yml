@@ -83,10 +83,10 @@ jobs:
           pytest tests
           python -m coverage xml
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
-          flags: unit
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()
