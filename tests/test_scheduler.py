@@ -457,7 +457,7 @@ async def test_shielded_task_continues(scheduler: Scheduler) -> None:
     assert len(scheduler._shields) == 1
     await asyncio.sleep(0.11)
     assert completed
-    assert len(scheduler._shields) == 0
+    assert len(scheduler._shields) == 0  # type: ignore[unreachable]
 
 
 async def test_wait_and_close(scheduler: Scheduler) -> None:
@@ -481,8 +481,8 @@ async def test_wait_and_close(scheduler: Scheduler) -> None:
     assert len(scheduler._jobs) == 1
 
     await scheduler.wait_and_close()
-    assert inner_done and outer_done
-    assert len(scheduler._shields) == 0
+    assert inner_done and outer_done  # type: ignore[unreachable]
+    assert len(scheduler._shields) == 0  # type: ignore[unreachable]
     assert len(scheduler._jobs) == 0
     assert scheduler.closed
 
@@ -510,8 +510,8 @@ async def test_wait_and_close_timeout(scheduler: Scheduler) -> None:
     assert len(scheduler._jobs) == 1
 
     await scheduler.wait_and_close(0.2)
-    assert inner_done and outer_cancelled
-    assert len(scheduler._shields) == 0
+    assert inner_done and outer_cancelled  # type: ignore[unreachable]
+    assert len(scheduler._shields) == 0  # type: ignore[unreachable]
     assert len(scheduler._jobs) == 0
     assert scheduler.closed
 
@@ -535,7 +535,7 @@ async def test_wait_and_close_spawn(scheduler: Scheduler) -> None:
 
     assert not another_spawned and not another_done
     await scheduler.wait_and_close()
-    assert another_spawned and another_done
+    assert another_spawned and another_done  # type: ignore[unreachable]
 
 
 def test_scheduler_must_be_created_within_running_loop() -> None:
