@@ -26,7 +26,7 @@ _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
-def _get_loop(fut: asyncio.Task[object]) -> asyncio.AbstractEventLoop:
+def _get_loop(fut: "asyncio.Task[object]") -> asyncio.AbstractEventLoop:
     # https://github.com/python/cpython/blob/bb802db8cfa35a88582be32fae05fe1cf8f237b1/Lib/asyncio/futures.py#L300
     try:
         get_loop = fut.get_loop
