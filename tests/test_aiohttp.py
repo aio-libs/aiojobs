@@ -12,6 +12,7 @@ from aiojobs.aiohttp import (
     get_scheduler_from_app,
     get_scheduler_from_request,
     setup as aiojobs_setup,
+    shield,
     spawn,
 )
 
@@ -23,6 +24,10 @@ _Client = Callable[[web.Application], Awaitable[ClientSession]]
 async def test_plugin(aiohttp_client: _Client) -> None:
     job = None
 
+    async def shielded() -> str:
+        await asyncio.sleep(0)
+        return "TEST"
+
     async def coro() -> None:
         await asyncio.sleep(10)
 
@@ -31,7 +36,9 @@ async def test_plugin(aiohttp_client: _Client) -> None:
 
         job = await spawn(request, coro())
         assert not job.closed
-        return web.Response()
+
+        res = await shield(request, shielded())
+        return web.Response(text=res)
 
     app = web.Application()
     app.router.add_get("/", handler)
@@ -40,6 +47,7 @@ async def test_plugin(aiohttp_client: _Client) -> None:
     client = await aiohttp_client(app)
     resp = await client.get("/")
     assert resp.status == 200
+    assert await resp.text() == "TEST"
 
     assert job is not None
     assert job.active

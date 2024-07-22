@@ -1,5 +1,6 @@
 import asyncio
 import sys
+from contextlib import suppress
 from typing import (
     Any,
     Awaitable,
@@ -162,13 +163,14 @@ class Scheduler(Collection[Job[object]]):
         return outer
 
     async def wait_and_close(self, timeout: float = 60) -> None:
-        async with asyncio_timeout(timeout):
-            while self._jobs or self._shields:
-                await asyncio.gather(
-                    *(job.wait() for job in self._jobs),
-                    *self._shields,
-                    return_exceptions=True,
-                )
+        with suppress(asyncio.TimeoutError):
+            async with asyncio_timeout(timeout):
+                while self._jobs or self._shields:
+                    await asyncio.gather(
+                        *(job.wait() for job in self._jobs),
+                        *self._shields,
+                        return_exceptions=True,
+                    )
         await self.close()
 
     async def close(self) -> None:

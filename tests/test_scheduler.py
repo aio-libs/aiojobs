@@ -426,6 +426,118 @@ async def test_run_after_close(scheduler: Scheduler) -> None:
         del coro
 
 
+async def test_shield(scheduler: Scheduler) -> None:
+    async def coro() -> str:
+        await asyncio.sleep(0)
+        return "TEST"
+
+    result = await scheduler.shield(coro())
+    assert result == "TEST"
+    assert len(scheduler._shields) == 0
+
+
+async def test_shielded_task_continues(scheduler: Scheduler) -> None:
+    completed = False
+
+    async def inner() -> None:
+        nonlocal completed
+        await asyncio.sleep(0.1)
+        completed = True
+
+    async def outer() -> None:
+        await scheduler.shield(inner())
+
+    t = asyncio.create_task(outer())
+    await asyncio.sleep(0)
+    t.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await t
+
+    assert not completed
+    assert len(scheduler._shields) == 1
+    await asyncio.sleep(0.11)
+    assert completed
+    assert len(scheduler._shields) == 0
+
+
+async def test_wait_and_close(scheduler: Scheduler) -> None:
+    inner_done = outer_done = False
+
+    async def inner() -> None:
+        nonlocal inner_done
+        await asyncio.sleep(0.1)
+        inner_done = True
+
+    async def outer() -> None:
+        nonlocal outer_done
+        await scheduler.shield(inner())
+        await asyncio.sleep(0.1)
+        outer_done = True
+
+    await scheduler.spawn(outer())
+    await asyncio.sleep(0)
+    assert not inner_done and not outer_done
+    assert len(scheduler._shields) == 1
+    assert len(scheduler._jobs) == 1
+
+    await scheduler.wait_and_close()
+    assert inner_done and outer_done
+    assert len(scheduler._shields) == 0
+    assert len(scheduler._jobs) == 0
+    assert scheduler.closed
+
+
+async def test_wait_and_close_timeout(scheduler: Scheduler) -> None:
+    inner_done = outer_cancelled = False
+
+    async def inner() -> None:
+        nonlocal inner_done
+        await asyncio.sleep(0.1)
+        inner_done = True
+
+    async def outer() -> None:
+        nonlocal outer_cancelled
+        await scheduler.shield(inner())
+        try:
+            await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            outer_cancelled = True
+
+    await scheduler.spawn(outer())
+    await asyncio.sleep(0)
+    assert not inner_done and not outer_cancelled
+    assert len(scheduler._shields) == 1
+    assert len(scheduler._jobs) == 1
+
+    await scheduler.wait_and_close(0.2)
+    assert inner_done and outer_cancelled
+    assert len(scheduler._shields) == 0
+    assert len(scheduler._jobs) == 0
+    assert scheduler.closed
+
+
+async def test_wait_and_close_spawn(scheduler: Scheduler) -> None:
+    another_spawned = another_done = False
+
+    async def another() -> None:
+        nonlocal another_done
+        await scheduler.shield(asyncio.sleep(0.1))
+        another_done = True
+
+    async def coro() -> None:
+        nonlocal another_spawned
+        await asyncio.sleep(0.1)
+        another_spawned = True
+        await scheduler.spawn(another())
+
+    await scheduler.spawn(coro())
+    await asyncio.sleep(0)
+
+    assert not another_spawned and not another_done
+    await scheduler.wait_and_close()
+    assert another_spawned and another_done
+
+
 def test_scheduler_must_be_created_within_running_loop() -> None:
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
