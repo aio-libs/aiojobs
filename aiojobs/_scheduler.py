@@ -26,7 +26,7 @@ _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
-def _get_loop(fut):
+def _get_loop(fut: "asyncio.Future[object]") -> asyncio.AbstractEventLoop:
     # https://github.com/python/cpython/blob/bb802db8cfa35a88582be32fae05fe1cf8f237b1/Lib/asyncio/futures.py#L300
     try:
         get_loop = fut.get_loop
@@ -53,7 +53,7 @@ class Scheduler(Collection[Job[object]]):
             )
 
         self._jobs: Set[Job[object]] = set()
-        self._shields: Set[asyncio.Future[object]] = set()
+        self._shields: Set[asyncio.Task[object]] = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
@@ -138,7 +138,7 @@ class Scheduler(Collection[Job[object]]):
         loop = _get_loop(inner)
         outer = loop.create_future()
 
-        def _inner_done_callback(inner):
+        def _inner_done_callback(inner: asyncio.Task[object]) -> None:
             if outer.cancelled():
                 if not inner.cancelled():
                     inner.exception()
@@ -153,7 +153,7 @@ class Scheduler(Collection[Job[object]]):
                 else:
                     outer.set_result(inner.result())
 
-        def _outer_done_callback(outer):
+        def _outer_done_callback(outer: "asyncio.Future[object]") -> None:
             if not inner.done():
                 inner.remove_done_callback(_inner_done_callback)
 
