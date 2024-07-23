@@ -36,8 +36,8 @@ Usage example
        await asyncio.sleep(5.0)
        # not all scheduled jobs are finished at the moment
 
-       # gracefully close spawned jobs
-       await scheduler.close()
+       # gracefully wait on tasks before closing any remaining spawned jobs
+       await scheduler.wait_and_close()
 
    asyncio.run(main())
 
