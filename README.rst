@@ -55,7 +55,7 @@ Usage example
 Shielding tasks with a scheduler
 ================================
 
-It is typically recommended to use :func:`asyncio.shield` to protect tasks
+It is typically recommended to use :meth:`asyncio.shield` to protect tasks
 from cancellation. However, the inner shielded tasks can't be tracked and
 are therefore at risk of being cancelled during application shutdown.
 
