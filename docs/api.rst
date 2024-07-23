@@ -103,14 +103,31 @@ Scheduler
 
          The method respects :attr:`pending_limit` now.
 
+   .. py:method:: shield(coro)
+      :async:
+
+      Protect an awaitable from being cancelled.
+
+      This is a drop-in replacement for :func:`asyncio.shield`, with the
+      addition of tracking the shielded task in the scheduler. This can be
+      used to ensure that shielded tasks will actually be completed on
+      application shutdown.
+
+   .. py:method:: wait_and_close(timeout=60)
+      :async:
+
+      Wait for currently scheduled tasks to finish gracefully for the given
+      *timeout*. Then proceed with closing the scheduler, where any
+      remaining tasks will be cancelled.
+
    .. py:method:: close()
       :async:
 
-      Close scheduler and all its jobs.
+      Close scheduler and all its jobs by cancelling the tasks and then
+      waiting on them.
 
-      It finishing time for particular job exceeds
-      :attr:`close_timeout` this job is logged by
-      :meth:`call_exception_handler`.
+      It finishing time for a particular job exceeds :attr:`close_timeout`
+      the job is logged by :meth:`call_exception_handler`.
 
 
    .. attribute:: exception_handler
@@ -220,6 +237,15 @@ jobs.
    * *coro* a coroutine to be executed inside a new job
 
    Return :class:`aiojobs.Job` instance
+
+.. function:: shield(request, coro)
+      :async:
+
+   Protect an awaitable from being cancelled while registering the shielded
+   task into the registered scheduler.
+
+   Any shielded tasks will then be run to completion when the web app shuts
+   down (assuming it doesn't exceed the shutdown timeout).
 
 
 Helpers

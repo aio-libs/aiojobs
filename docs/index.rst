@@ -44,6 +44,48 @@ Usage example
 For further information read :ref:`aiojobs-quickstart`,
 :ref:`aiojobs-intro` and :ref:`aiojobs-api`.
 
+Shielding tasks with a scheduler
+--------------------------------
+
+It is typically recommended to use :func:`asyncio.shield` to protect tasks
+from cancellation. However, the inner shielded tasks can't be tracked and
+are therefore at risk of being cancelled during application shutdown.
+
+To resolve this issue aiojobs includes a :meth:`aiojobs.Scheduler.shield`
+method to shield tasks while also keeping track of them in the scheduler.
+In combination with the :meth:`aiojobs.Scheduler.wait_and_close` method,
+this allows shielded tasks the required time to complete successfully
+during application shutdown.
+
+For example:
+
+.. code-block:: python
+
+   import asyncio
+   import aiojobs
+   from contextlib import suppress
+
+   async def important():
+       print("START")
+       await asyncio.sleep(5)
+       print("DONE")
+
+   async def run_something(scheduler):
+       # If we use asyncio.shield() here, then the task doesn't complete and DONE is never printed.
+       await scheduler.shield(important())
+
+   async def main():
+       scheduler = aiojobs.Scheduler()
+       t = asyncio.create_task(run_something(scheduler))
+       await asyncio.sleep(0.1)
+       t.cancel()
+       with suppress(asyncio.CancelledError):
+           await t
+       await scheduler.wait_and_close()
+
+   asyncio.run(main())
+
+
 Integration with aiohttp.web
 ----------------------------
 
