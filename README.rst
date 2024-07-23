@@ -47,10 +47,51 @@ Usage example
        await asyncio.sleep(5.0)
        # not all scheduled jobs are finished at the moment
 
-       # gracefully close spawned jobs
-       await scheduler.close()
+       # gracefully wait on tasks before closing any remaining spawned jobs
+       await scheduler.wait_and_close()
 
-   asyncio.get_event_loop().run_until_complete(main())
+   asyncio.run(main())
+
+Shielding tasks with a scheduler
+================================
+
+It is typically recommended to use ``asyncio.shield`` to protect tasks
+from cancellation. However, the inner shielded tasks can't be tracked and
+are therefore at risk of being cancelled during application shutdown.
+
+To resolve this issue aiojobs includes a ``aiojobs.Scheduler.shield``
+method to shield tasks while also keeping track of them in the scheduler.
+In combination with the ``aiojobs.Scheduler.wait_and_close`` method,
+this allows shielded tasks the required time to complete successfully
+during application shutdown.
+
+For example:
+
+.. code-block:: python
+
+   import asyncio
+   import aiojobs
+   from contextlib import suppress
+
+   async def important():
+       print("START")
+       await asyncio.sleep(5)
+       print("DONE")
+
+   async def run_something(scheduler):
+       # If we use asyncio.shield() here, then the task doesn't complete and DONE is never printed.
+       await scheduler.shield(important())
+
+   async def main():
+       scheduler = aiojobs.Scheduler()
+       t = asyncio.create_task(run_something(scheduler))
+       await asyncio.sleep(0.1)
+       t.cancel()
+       with suppress(asyncio.CancelledError):
+           await t
+       await scheduler.wait_and_close()
+
+   asyncio.run(main())
 
 
 Integration with aiohttp.web

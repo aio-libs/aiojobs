@@ -1,6 +1,9 @@
 import asyncio
+import sys
+from contextlib import suppress
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Collection,
     Coroutine,
@@ -9,12 +12,32 @@ from typing import (
     Optional,
     Set,
     TypeVar,
+    Union,
 )
 
 from ._job import Job
 
+if sys.version_info >= (3, 11):
+    from asyncio import timeout as asyncio_timeout
+else:
+    from async_timeout import timeout as asyncio_timeout
+
 _T = TypeVar("_T")
+_FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
+
+
+def _get_loop(  # pragma: no cover
+    fut: "asyncio.Task[object]",
+) -> asyncio.AbstractEventLoop:
+    # https://github.com/python/cpython/blob/bb802db8cfa35a88582be32fae05fe1cf8f237b1/Lib/asyncio/futures.py#L300
+    try:
+        get_loop = fut.get_loop
+    except AttributeError:
+        pass
+    else:
+        return get_loop()
+    return fut._loop
 
 
 class Scheduler(Collection[Job[object]]):
@@ -33,6 +56,7 @@ class Scheduler(Collection[Job[object]]):
             )
 
         self._jobs: Set[Job[object]] = set()
+        self._shields: Set[asyncio.Task[object]] = set()
         self._close_timeout = close_timeout
         self._limit = limit
         self._exception_handler = exception_handler
@@ -104,19 +128,72 @@ class Scheduler(Collection[Job[object]]):
         self._jobs.add(job)
         return job
 
+    def shield(self, arg: _FutureLike[_T]) -> "asyncio.Future[_T]":
+        inner = asyncio.ensure_future(arg)
+        if inner.done():
+            return inner
+
+        # This function is a copy of asyncio.shield(), except for the addition of
+        # the below 2 lines.
+        self._shields.add(inner)
+        inner.add_done_callback(self._shields.discard)
+
+        loop = _get_loop(inner)
+        outer = loop.create_future()
+
+        def _inner_done_callback(inner: "asyncio.Task[object]") -> None:
+            if outer.cancelled():
+                if not inner.cancelled():
+                    inner.exception()
+                return
+
+            if inner.cancelled():
+                outer.cancel()
+            else:
+                exc = inner.exception()
+                if exc is not None:
+                    outer.set_exception(exc)
+                else:
+                    outer.set_result(inner.result())
+
+        def _outer_done_callback(outer: "asyncio.Future[object]") -> None:
+            if not inner.done():
+                inner.remove_done_callback(_inner_done_callback)
+
+        inner.add_done_callback(_inner_done_callback)
+        outer.add_done_callback(_outer_done_callback)
+        return outer
+
+    async def wait_and_close(self, timeout: float = 60) -> None:
+        with suppress(asyncio.TimeoutError):
+            async with asyncio_timeout(timeout):
+                while self._jobs or self._shields:
+                    gather = asyncio.gather(
+                        *(job.wait() for job in self._jobs),
+                        *self._shields,
+                        return_exceptions=True,
+                    )
+                    await asyncio.shield(gather)
+        await self.close()
+
     async def close(self) -> None:
         if self._closed:
             return
         self._closed = True  # prevent adding new jobs
 
         jobs = self._jobs
-        if jobs:
+        if jobs or self._shields:
             # cleanup pending queue
             # all job will be started on closing
             while not self._pending.empty():
                 self._pending.get_nowait()
+
+            for f in self._shields:
+                f.cancel()
+
             await asyncio.gather(
-                *[job._close(self._close_timeout) for job in jobs],
+                *(job._close(self._close_timeout) for job in jobs),
+                *(asyncio.wait_for(f, self._close_timeout) for f in self._shields),
                 return_exceptions=True,
             )
             self._jobs.clear()
