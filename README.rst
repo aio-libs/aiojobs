@@ -55,13 +55,13 @@ Usage example
 Shielding tasks with a scheduler
 ================================
 
-It is typically recommended to use :meth:`asyncio.shield` to protect tasks
+It is typically recommended to use ``asyncio.shield`` to protect tasks
 from cancellation. However, the inner shielded tasks can't be tracked and
 are therefore at risk of being cancelled during application shutdown.
 
-To resolve this issue aiojobs includes a :meth:`aiojobs.Scheduler.shield`
+To resolve this issue aiojobs includes a ``aiojobs.Scheduler.shield``
 method to shield tasks while also keeping track of them in the scheduler.
-In combination with the :meth:`aiojobs.Scheduler.wait_and_close` method,
+In combination with the ``aiojobs.Scheduler.wait_and_close`` method,
 this allows shielded tasks the required time to complete successfully
 during application shutdown.
 
