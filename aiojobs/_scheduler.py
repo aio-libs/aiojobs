@@ -1,6 +1,7 @@
 import asyncio
 import sys
 from contextlib import suppress
+from types import TracebackType
 from typing import (
     Any,
     Awaitable,
@@ -11,6 +12,7 @@ from typing import (
     Iterator,
     Optional,
     Set,
+    Type,
     TypeVar,
     Union,
 )
@@ -19,8 +21,11 @@ from ._job import Job
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout
+    from typing import Self
 else:
     from async_timeout import timeout as asyncio_timeout
+
+    Self = TypeVar("Self", bound="Scheduler")
 
 _T = TypeVar("_T")
 _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
@@ -45,6 +50,7 @@ class Scheduler(Collection[Job[object]]):
         self,
         *,
         close_timeout: Optional[float] = 0.1,
+        wait_timeout: Optional[float] = 60,
         limit: Optional[int] = 100,
         pending_limit: int = 10000,
         exception_handler: Optional[ExceptionHandler] = None,
@@ -58,6 +64,7 @@ class Scheduler(Collection[Job[object]]):
         self._jobs: Set[Job[object]] = set()
         self._shields: Set[asyncio.Task[object]] = set()
         self._close_timeout = close_timeout
+        self._wait_timeout = wait_timeout
         self._limit = limit
         self._exception_handler = exception_handler
         self._failed_tasks: asyncio.Queue[Optional[asyncio.Task[object]]] = (
@@ -84,6 +91,17 @@ class Scheduler(Collection[Job[object]]):
         if state:
             state += " "
         return f"<Scheduler {state}jobs={len(self)}>"
+
+    async def __aenter__(self: Self) -> Self:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        await self.wait_and_close()
 
     @property
     def limit(self) -> Optional[int]:
@@ -164,7 +182,9 @@ class Scheduler(Collection[Job[object]]):
         outer.add_done_callback(_outer_done_callback)
         return outer
 
-    async def wait_and_close(self, timeout: float = 60) -> None:
+    async def wait_and_close(self, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = self._wait_timeout
         with suppress(asyncio.TimeoutError):
             async with asyncio_timeout(timeout):
                 while self._jobs or self._shields:

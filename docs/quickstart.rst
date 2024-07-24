@@ -35,7 +35,7 @@ Spawn a new job::
 
 At the end of program gracefully close the scheduler::
 
-   await scheduler.close()
+   await scheduler.wait_and_close()
 
 
 Let's collect it altogether into very small but still functional example::
@@ -47,16 +47,15 @@ Let's collect it altogether into very small but still functional example::
        await asyncio.sleep(timeout)
 
    async def main():
-       scheduler = aiojobs.Scheduler()
-       for i in range(100):
-           # spawn jobs
-           await scheduler.spawn(coro(i/10))
+       async with aiojobs.Scheduler() as scheduler:
+           for i in range(100):
+               # spawn jobs
+               await scheduler.spawn(coro(i/10))
 
-       await asyncio.sleep(5.0)
-       # not all scheduled jobs are finished at the moment
-
-       # gracefully close spawned jobs
-       await scheduler.close()
+           await asyncio.sleep(5.0)
+           # not all scheduled jobs are finished at the moment
+       # Exit from context will gracefully wait on tasks before closing
+       # any remaining spawned jobs
 
    asyncio.run(main())
 
@@ -70,8 +69,13 @@ seconds for its execution.
 Next we waits for ``5`` seconds. Roughly half of scheduled jobs should
 be finished already but ``50`` jobs are still active.
 
-For closing them we calls ``await scheduler.close()``, the call sends
-:exc:`asyncio.CancelledError` into every non-closed job to stop it.
+For closing them we exit the context manager, which calls
+:meth:`aiojobs.Scheduler.wait_and_close`. This waits for a grace period
+to allow tasks to complete normally, then after a timeout it sends
+:exc:`asyncio.CancelledError` into every non-closed job to stop them.
+
+Alternatively, we could use :meth:`Scheduler.close` to immediately
+close/cancel the jobs.
 
 That's pretty much it.
 
