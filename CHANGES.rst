@@ -18,12 +18,12 @@ Changelog
 ==================
 
 - Added ``Scheduler.wait_and_close()`` to allow a grace period for tasks to complete
-before closing the scheduler.
+  before closing the scheduler.
 - Added ``Scheduler.shield()`` as an alternative to ``asyncio.shield()`` which tracks
-the shielded task, thus ensuring shielded tasks are given time to complete on application
-shutdown (when used with ``Scheduler.wait_and_close()``).
+  the shielded task, thus ensuring shielded tasks are given time to complete on application
+  shutdown (when used with ``Scheduler.wait_and_close()``).
 - Added support for ``async with`` syntax which will automatically call
-``Scheduler.wait_and_close()`` when exiting the context.
+  ``Scheduler.wait_and_close()`` when exiting the context.
 
 1.2.1 (2023-11-18)
 ==================
