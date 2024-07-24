@@ -27,9 +27,13 @@ Scheduler
    Class must be instantiated within a running event loop (e.g. in an
    ``async`` function).
 
-   * *close_timeout* is a timeout for job closing, ``0.1`` by default.
-     If job's closing time takes more than timeout a
+   * *close_timeout* is a timeout for job closing after cancellation,
+     ``0.1`` by default. If job's closing time takes more than timeout a
      message is logged by :meth:`Scheduler.call_exception_handler`.
+
+   * *wait_timeout* is a timeout to allow pending tasks to complete before
+     being cancelled when using :meth:`Scheduler.wait_and_close` or
+     the ``async with`` syntax. Defaults to 60 seconds.
 
    * *limit* is a limit for jobs spawned by scheduler, ``100`` by
      default.
@@ -113,12 +117,12 @@ Scheduler
       used to ensure that shielded tasks will actually be completed on
       application shutdown.
 
-   .. py:method:: wait_and_close(timeout=60)
+   .. py:method:: wait_and_close(timeout=None)
       :async:
 
       Wait for currently scheduled tasks to finish gracefully for the given
-      *timeout*. Then proceed with closing the scheduler, where any
-      remaining tasks will be cancelled.
+      *timeout* or *wait_timeout* if *timeout* is ``None``. Then proceed with
+      closing the scheduler, where any remaining tasks will be cancelled.
 
    .. py:method:: close()
       :async:

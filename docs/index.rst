@@ -28,16 +28,15 @@ Usage example
        await asyncio.sleep(timeout)
 
    async def main():
-       scheduler = aiojobs.Scheduler()
-       for i in range(100):
-           # spawn jobs
-           await scheduler.spawn(coro(i/10))
+       async with aiojobs.Scheduler() as scheduler:
+           for i in range(100):
+               # spawn jobs
+               await scheduler.spawn(coro(i/10))
 
-       await asyncio.sleep(5.0)
-       # not all scheduled jobs are finished at the moment
-
-       # gracefully wait on tasks before closing any remaining spawned jobs
-       await scheduler.wait_and_close()
+           await asyncio.sleep(5.0)
+           # not all scheduled jobs are finished at the moment
+       # Exit from context will gracefully wait on tasks before closing
+       # any remaining spawned jobs
 
    asyncio.run(main())
 
@@ -75,13 +74,12 @@ For example:
        await scheduler.shield(important())
 
    async def main():
-       scheduler = aiojobs.Scheduler()
-       t = asyncio.create_task(run_something(scheduler))
-       await asyncio.sleep(0.1)
-       t.cancel()
-       with suppress(asyncio.CancelledError):
-           await t
-       await scheduler.wait_and_close()
+       async with aiojobs.Scheduler() as scheduler:
+           t = asyncio.create_task(run_something(scheduler))
+           await asyncio.sleep(0.1)
+           t.cancel()
+           with suppress(asyncio.CancelledError):
+               await t
 
    asyncio.run(main())
 

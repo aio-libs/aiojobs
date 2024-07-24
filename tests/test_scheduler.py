@@ -516,7 +516,7 @@ async def test_wait_and_close_timeout(scheduler: Scheduler) -> None:
     assert scheduler.closed
 
 
-async def test_wait_and_close_timeout_shield(scheduler: Scheduler) -> None:
+async def test_wait_and_close_timeout_shield() -> None:
     inner_cancelled = outer_cancelled = False
 
     async def inner() -> None:
@@ -534,13 +534,13 @@ async def test_wait_and_close_timeout_shield(scheduler: Scheduler) -> None:
         except asyncio.CancelledError:
             outer_cancelled = True
 
-    await scheduler.spawn(outer())
-    await asyncio.sleep(0)
-    assert not inner_cancelled and not outer_cancelled
-    assert len(scheduler._shields) == 1
-    assert len(scheduler._jobs) == 1
+    async with Scheduler(wait_timeout=0.1) as scheduler:
+        await scheduler.spawn(outer())
+        await asyncio.sleep(0)
+        assert not inner_cancelled and not outer_cancelled
+        assert len(scheduler._shields) == 1
+        assert len(scheduler._jobs) == 1
 
-    await scheduler.wait_and_close(0.1)
     assert inner_cancelled and outer_cancelled  # type: ignore[unreachable]
     assert len(scheduler._shields) == 0  # type: ignore[unreachable]
     assert len(scheduler._jobs) == 0
