@@ -24,6 +24,7 @@ if sys.version_info >= (3, 11):
     from typing import Self
 else:
     from async_timeout import timeout as asyncio_timeout
+
     Self = TypeVar("Self", bound="Scheduler")
 
 _T = TypeVar("_T")
