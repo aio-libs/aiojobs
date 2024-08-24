@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import traceback
-from typing import TYPE_CHECKING, Coroutine, Generic, Optional, TypeVar , Generator, Any
+from typing import TYPE_CHECKING, Any, Coroutine, Generator, Generic, Optional, TypeVar
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout

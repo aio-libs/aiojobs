@@ -315,6 +315,7 @@ async def test_set_job_name(scheduler: Scheduler) -> None:
     assert job._task is not None
     assert job._task.get_name() == "changed_name"
 
+
 async def test_awaitable_job(scheduler: Scheduler) -> None:
     async def coro() -> int:
         """Dummy function with result"""
@@ -324,14 +325,12 @@ async def test_awaitable_job(scheduler: Scheduler) -> None:
     result = await job
     assert result == 1
 
-async def test_job_gathering(scheduler:Scheduler):
+
+async def test_job_gathering(scheduler: Scheduler):
     async def coro() -> int:
         """Dummy function with result"""
         return 1
-    
+
     jobs = [scheduler.spawn(coro()) for _ in range(5)]
     results = await asyncio.gather(*jobs)
     assert results == [1, 1, 1, 1, 1]
-
-
-
