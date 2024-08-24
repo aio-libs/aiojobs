@@ -331,6 +331,6 @@ async def test_job_gathering(scheduler: Scheduler):
         """Dummy function with result"""
         return 1
 
-    jobs = [scheduler.spawn(coro()) for _ in range(5)]
+    jobs = (scheduler.spawn(coro()) for _ in range(5))
     results = await asyncio.gather(*jobs)
     assert results == [1, 1, 1, 1, 1]
