@@ -166,5 +166,5 @@ class Job(Generic[_T]):
             context["source_traceback"] = self._source_traceback
         self._scheduler.call_exception_handler(context)
 
-    def __await__(self) -> Generator[Any, Any, _T]:
+    def __await__(self) -> _T:
         return self.wait().__await__()
