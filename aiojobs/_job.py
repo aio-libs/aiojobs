@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import traceback
-from typing import TYPE_CHECKING, Coroutine, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Coroutine, Generic, Optional, TypeVar , Generator, Any
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout
@@ -165,3 +165,6 @@ class Job(Generic[_T]):
         if self._source_traceback is not None:
             context["source_traceback"] = self._source_traceback
         self._scheduler.call_exception_handler(context)
+
+    def __await__(self) -> Generator[Any, Any, _T]:
+        return self.wait().__await__()
