@@ -58,8 +58,7 @@ def atomic(
             # Class Based View decorated.
             request = request_or_view.request
         else:
-            # https://github.com/python/mypy/issues/13896
-            request = request_or_view  # type: ignore[assignment]
+            request = request_or_view
 
         job = await spawn(request, coro(request_or_view))
         return await job.wait()
