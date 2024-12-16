@@ -58,7 +58,7 @@ def test_spawn_with_different_loop() -> None:
 
     scheduler = Scheduler()
 
-    def spawn() -> Job:
+    async def spawn() -> Job:
         job = await scheduler.spawn(coro())
         assert not job.closed
 
