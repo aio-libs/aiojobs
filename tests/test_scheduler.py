@@ -637,7 +637,7 @@ async def test_wait_and_close_spawn(scheduler: Scheduler) -> None:
     assert another_spawned and another_done  # type: ignore[unreachable]
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 10), reason="Requires Python 3.10+")
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="Requires Python<3.10")
 def test_scheduler_must_be_created_within_running_loop() -> None:
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
