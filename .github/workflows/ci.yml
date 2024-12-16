@@ -20,11 +20,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.13
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-3.9-${{ hashFiles('requirements/*.txt') }}
+          key: ${{ runner.os }}-pip-3.13-${{ hashFiles('requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - run: make setup
@@ -37,10 +37,10 @@ jobs:
     steps:
       - name: Checkhout
         uses: actions/checkout@v4
-      - name: Setup Python 3.9
+      - name: Setup Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.13
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -55,10 +55,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-         pyver: ['3.8', '3.9', '3.10', '3.11']
+         pyver: ['3.9', '3.10', '3.11', '3.12', '3.13']
          experimental: [false]
          include:
-           - pyver: "3.12"
+           - pyver: "3.14"
              experimental: true
       fail-fast: true
     continue-on-error: ${{ matrix.experimental }}
@@ -110,7 +110,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: 3.13
     - name: Install dependencies
       run:
         python -m pip install -U pip wheel setuptools build twine
