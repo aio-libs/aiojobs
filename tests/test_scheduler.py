@@ -61,6 +61,7 @@ async def test_spawn_non_bound_loop() -> None:
     await scheduler.close()
 
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10+")
 def test_spawn_with_different_loop() -> None:
     async def func() -> None:
         await asyncio.sleep(1)
