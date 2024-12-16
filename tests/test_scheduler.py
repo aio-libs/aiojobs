@@ -41,7 +41,7 @@ async def test_spawn_non_bound_loop() -> None:
     async def coro() -> None:
         await asyncio.sleep(1)
 
-    scheduler = asyncio.to_thread(Scheduler)
+    scheduler = await asyncio.to_thread(Scheduler)
     assert scheduler._failed_task is None
 
     job = await scheduler.spawn(coro())
