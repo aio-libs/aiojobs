@@ -58,6 +58,8 @@ class Scheduler(Collection[Job[object]]):
             asyncio.Queue()
         )
         self._failed_task: Optional["asyncio.Task[None]"] = None
+        if sys.version_info < (3, 10):
+            self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
         self._closed = False
 
