@@ -47,36 +47,47 @@ async def test_spawn_non_bound_loop() -> None:
     job = await scheduler.spawn(coro())
     assert not job.closed
 
+    assert scheduler._failed_task is not None
+    assert scheduler._failed_task.get_loop() is asyncio.get_running_loop()
+
     assert len(scheduler) == 1
     assert list(scheduler) == [job]
     assert job in scheduler
 
+    await scheduler.close()
+
 
 def test_spawn_with_different_loop() -> None:
-    async def coro() -> None:
+    async def func() -> None:
         await asyncio.sleep(1)
 
     scheduler = Scheduler()
 
-    async def spawn() -> Job[None]:
-        job = await scheduler.spawn(coro())
+    async def spawn1() -> Job[None]:
+        job = await scheduler.spawn(func())
         assert not job.closed
+
+        assert len(scheduler) == 1
+        assert list(scheduler) == [job]
+        assert job in scheduler
 
         return job
 
-    loop1 = asyncio.new_event_loop()
-    job = loop1.run_until_complete(spawn())
+    async def spawn2() -> None:
+        coro = func()
+        with pytest.raises(RuntimeError, match=" is bound to a different event loop"):
+            await scheduler.spawn(coro)
 
-    assert len(scheduler) == 1
-    assert list(scheduler) == [job]
-    assert job in scheduler
+        await coro  # suppress a warning about non-awaited coroutine
+
+        assert len(scheduler) == 1
+        assert list(scheduler) == [job]
+
+    loop1 = asyncio.new_event_loop()
+    job = loop1.run_until_complete(spawn1())
 
     loop2 = asyncio.new_event_loop()
-    with pytest.raises(RuntimeError, match=" is bound to a different event loop"):
-        loop2.run_until_complete(spawn())
-
-    assert len(scheduler) == 1
-    assert list(scheduler) == [job]
+    loop2.run_until_complete(spawn2())
 
     loop2.close()
     loop1.run_until_complete(scheduler.close())
@@ -621,6 +632,7 @@ async def test_wait_and_close_spawn(scheduler: Scheduler) -> None:
     assert another_spawned and another_done  # type: ignore[unreachable]
 
 
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="Requires Python 3.10+")
 def test_scheduler_must_be_created_within_running_loop() -> None:
     with pytest.raises(RuntimeError) as exc_info:
         Scheduler(close_timeout=0, limit=0, pending_limit=0, exception_handler=None)
