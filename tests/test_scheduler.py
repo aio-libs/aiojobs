@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from aiojobs import Scheduler
+from aiojobs import Scheduler, Job
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout
@@ -19,6 +19,14 @@ def test_ctor(scheduler: Scheduler) -> None:
     assert len(scheduler) == 0
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="Requires Python 3.10+")
+def test_ctor_without_loop() -> None:
+    scheduler = Scheduler()
+    assert len(scheduler) == 0
+
+
 async def test_spawn(scheduler: Scheduler) -> None:
     async def coro() -> None:
         await asyncio.sleep(1)
@@ -29,6 +37,52 @@ async def test_spawn(scheduler: Scheduler) -> None:
     assert len(scheduler) == 1
     assert list(scheduler) == [job]
     assert job in scheduler
+
+
+async def test_spawn_non_bound_loop() -> None:
+    async def coro() -> None:
+        await asyncio.sleep(1)
+
+    scheduler = asyncio.to_thread(Scheduler)
+    assert scheduler._failed_task is None
+
+    job = await scheduler.spawn(coro())
+    assert not job.closed
+
+    assert len(scheduler) == 1
+    assert list(scheduler) == [job]
+    assert job in scheduler
+
+
+def test_spawn_with_different_loop() -> None:
+    async def coro() -> None:
+        await asyncio.sleep(1)
+
+    scheduler = Scheduler()
+
+    def spawn() -> Job:
+        job = await scheduler.spawn(coro())
+        assert not job.closed
+
+        return job
+
+    loop1 = asyncio.new_event_loop()
+    job = loop1.run_until_complete(spawn())
+
+    assert len(scheduler) == 1
+    assert list(scheduler) == [job]
+    assert job in scheduler
+
+    loop2 = asyncio.new_event_loop()
+    with pytest.raises(RuntimeError, match=" is bound to a different event loop"):
+        loop2.run_until_complete(spawn())
+
+    assert len(scheduler) == 1
+    assert list(scheduler) == [job]
+
+    loop2.close()
+    loop1.run_until_complete(scheduler.close())
+    loop1.close()
 
 
 async def test_run_retval(scheduler: Scheduler) -> None:
