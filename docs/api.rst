@@ -24,9 +24,6 @@ Scheduler
    jobs could be iterated etc.: ``len(scheduler)``, ``for job in
    scheduler``, ``job in scheduler`` operations are supported.
 
-   Class must be instantiated within a running event loop (e.g. in an
-   ``async`` function).
-
    * *close_timeout* is a timeout for job closing after cancellation,
      ``0.1`` by default. If job's closing time takes more than timeout a
      message is logged by :meth:`Scheduler.call_exception_handler`.

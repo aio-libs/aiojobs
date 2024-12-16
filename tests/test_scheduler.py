@@ -38,6 +38,8 @@ async def test_spawn(scheduler: Scheduler) -> None:
 
 
 async def test_spawn_non_bound_loop() -> None:
+    loop = asyncio.get_running_loop()
+
     async def coro() -> None:
         await asyncio.sleep(1)
 
@@ -47,8 +49,10 @@ async def test_spawn_non_bound_loop() -> None:
     job = await scheduler.spawn(coro())
     assert not job.closed
 
-    assert scheduler._failed_task is not None
-    assert scheduler._failed_task.get_loop() is asyncio.get_running_loop()
+    ft = scheduler._failed_task
+    assert ft is not None
+    scheduler_loop = ft.get_loop()  # type: ignore[unreachable]
+    assert scheduler_loop is loop
 
     assert len(scheduler) == 1
     assert list(scheduler) == [job]
