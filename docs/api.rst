@@ -55,6 +55,11 @@ Scheduler
      for everybody, user should pass a value suitable for his
      environment anyway.
 
+   .. versionchanged:: 1.4.0
+
+      The scheduler creation doesn't require a running event loop anymore if it is
+      executed by Python 3.10+.
+
    .. attribute:: limit
 
       Concurrency limit (``100`` by default) or ``None`` if the limit
