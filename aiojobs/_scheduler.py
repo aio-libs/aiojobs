@@ -123,7 +123,7 @@ class Scheduler(Collection[Job[object]]):
             self._failed_task = asyncio.create_task(self._wait_failed())
         else:
             if self._failed_task.get_loop() is not asyncio.get_running_loop():
-                raise RuntimeError(f'{self!r} is bound to a different event loop')
+                raise RuntimeError(f"{self!r} is bound to a different event loop")
         job = Job(coro, self, name=name)
         should_start = self._limit is None or self.active_count < self._limit
         if should_start:

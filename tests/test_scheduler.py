@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from aiojobs import Scheduler, Job
+from aiojobs import Job, Scheduler
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout
@@ -19,9 +19,7 @@ def test_ctor(scheduler: Scheduler) -> None:
     assert len(scheduler) == 0
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 10),
-    reason="Requires Python 3.10+")
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10+")
 def test_ctor_without_loop() -> None:
     scheduler = Scheduler()
     assert len(scheduler) == 0
