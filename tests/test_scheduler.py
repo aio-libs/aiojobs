@@ -37,6 +37,7 @@ async def test_spawn(scheduler: Scheduler) -> None:
     assert job in scheduler
 
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10+")
 async def test_spawn_non_bound_loop() -> None:
     loop = asyncio.get_running_loop()
 
