@@ -48,7 +48,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       - run: make setup
-      - run: make lint
+      - run: pre-commit run --all-files
 
   test:
     name: Test
@@ -76,6 +76,9 @@ jobs:
         uses: py-actions/py-dependency-install@v4
         with:
           path: requirements/ci.txt
+      - name: Run mypy
+        run: |
+          mypy
       - name: Run tests
         env:
           PYTHONPATH: .
