@@ -1,3 +1,4 @@
+mypy==1.13.0
 pytest==8.3.4
 pytest-aiohttp==1.0.5
 pytest-cov==6.0.0
