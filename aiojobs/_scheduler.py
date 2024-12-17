@@ -32,19 +32,6 @@ _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
-def _get_loop(  # pragma: no cover
-    fut: "asyncio.Task[object]",
-) -> asyncio.AbstractEventLoop:
-    # https://github.com/python/cpython/blob/bb802db8cfa35a88582be32fae05fe1cf8f237b1/Lib/asyncio/futures.py#L300
-    try:
-        get_loop = fut.get_loop
-    except AttributeError:
-        pass
-    else:
-        return get_loop()
-    return fut._loop
-
-
 class Scheduler(Collection[Job[object]]):
     def __init__(
         self,
@@ -70,7 +57,9 @@ class Scheduler(Collection[Job[object]]):
         self._failed_tasks: asyncio.Queue[Optional[asyncio.Task[object]]] = (
             asyncio.Queue()
         )
-        self._failed_task = asyncio.create_task(self._wait_failed())
+        self._failed_task: Optional["asyncio.Task[None]"] = None
+        if sys.version_info < (3, 10):
+            self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
         self._closed = False
 
@@ -132,6 +121,11 @@ class Scheduler(Collection[Job[object]]):
     ) -> Job[_T]:
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
+        if self._failed_task is None:
+            self._failed_task = asyncio.create_task(self._wait_failed())
+        else:
+            if self._failed_task.get_loop() is not asyncio.get_running_loop():
+                raise RuntimeError(f"{self!r} is bound to a different event loop")
         job = Job(coro, self, name=name)
         should_start = self._limit is None or self.active_count < self._limit
         if should_start:
@@ -156,7 +150,7 @@ class Scheduler(Collection[Job[object]]):
         self._shields.add(inner)
         inner.add_done_callback(self._shields.discard)
 
-        loop = _get_loop(inner)
+        loop = inner.get_loop()
         outer = loop.create_future()
 
         def _inner_done_callback(inner: "asyncio.Task[object]") -> None:
@@ -217,8 +211,9 @@ class Scheduler(Collection[Job[object]]):
                 return_exceptions=True,
             )
             self._jobs.clear()
-        self._failed_tasks.put_nowait(None)
-        await self._failed_task
+        if self._failed_task is not None:
+            self._failed_tasks.put_nowait(None)
+            await self._failed_task
 
     def call_exception_handler(self, context: Dict[str, Any]) -> None:
         if self._exception_handler is None:
