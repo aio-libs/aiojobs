@@ -50,7 +50,7 @@ def shield(request: web.Request, arg: _FutureLike[_T]) -> "asyncio.Future[_T]":
 
 
 def atomic(
-    coro: Callable[[_RequestView], Coroutine[object, object, _T]]
+    coro: Callable[[_RequestView], Coroutine[object, object, _T]],
 ) -> Callable[[_RequestView], Awaitable[_T]]:
     @wraps(coro)
     async def wrapper(request_or_view: _RequestView) -> _T:  # type: ignore[misc]
