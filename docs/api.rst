@@ -93,7 +93,7 @@ Scheduler
 
       ``True`` if scheduler is closed (:meth:`close` called).
 
-   .. py:method:: spawn[T](coro: Coroutine[Any, Any, T], name: str | None = None) -> Job[T]
+   .. py:method:: spawn[T](coro: Coroutine[Any, Any, T], name: str | None = None) -> Job
       :async:
 
       Spawn a new job for execution *coro* coroutine.
@@ -113,7 +113,7 @@ Scheduler
 
          The method respects :attr:`pending_limit` now.
 
-   .. py:method:: shield[T](coro: Future[T] | Awaitable[T]) -> Future[T]
+   .. py:method:: shield[T](coro: Future[T] | Awaitable[T]) -> Future
       :async:
 
       Protect an awaitable from being cancelled.
@@ -238,7 +238,7 @@ jobs.
    * *app* - :class:`aiohttp.web.Application` instance.
    * *kwargs* - additional named parameters passed to :class:`aiojobs.Scheduler`.
 
-.. function:: spawn[T](request: web.Request, coro: Coroutine[Any, Any, T]) -> Job[T]
+.. function:: spawn[T](request: web.Request, coro: Coroutine[Any, Any, T]) -> Job
       :async:
 
    Spawn a new job using scheduler registered into ``request.app``,
@@ -249,7 +249,7 @@ jobs.
 
    Return :class:`aiojobs.Job` instance
 
-.. function:: shield[T](request: web.Request, coro: Future[T] | Awaitable[T]) -> Future[T]
+.. function:: shield[T](request: web.Request, coro: Future[T] | Awaitable[T]) -> Future
       :async:
 
    Protect an awaitable from being cancelled while registering the shielded
