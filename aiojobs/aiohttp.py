@@ -1,11 +1,9 @@
 import asyncio
+from collections.abc import AsyncIterator, Awaitable, Coroutine
 from functools import wraps
 from typing import (
     Any,
-    AsyncIterator,
-    Awaitable,
     Callable,
-    Coroutine,
     Optional,
     TypeVar,
     Union,

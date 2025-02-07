@@ -1,7 +1,8 @@
 import asyncio
 import sys
 import traceback
-from typing import TYPE_CHECKING, Coroutine, Generic, Optional, TypeVar
+from collections.abc import Coroutine
+from typing import TYPE_CHECKING, Generic, Optional, TypeVar
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout
@@ -31,7 +32,7 @@ class Job(Generic[_T]):
 
         self._closed = False
         self._explicit = False
-        self._task: Optional["asyncio.Task[_T]"] = None
+        self._task: Optional[asyncio.Task[_T]] = None
 
         tb = traceback.extract_stack(sys._getframe(2)) if loop.get_debug() else None
         self._source_traceback = tb

@@ -1,15 +1,12 @@
 import asyncio
 import sys
+from collections.abc import Awaitable, Collection, Coroutine, Iterator
 from contextlib import suppress
 from types import TracebackType
 from typing import (
     Any,
-    Awaitable,
     Callable,
-    Collection,
-    Coroutine,
     Dict,
-    Iterator,
     Optional,
     Set,
     Type,
@@ -44,8 +41,7 @@ class Scheduler(Collection[Job[object]]):
     ):
         if exception_handler is not None and not callable(exception_handler):
             raise TypeError(
-                "A callable object or None is expected, "
-                "got {!r}".format(exception_handler)
+                f"A callable object or None is expected, got {exception_handler!r}"
             )
 
         self._jobs: Set[Job[object]] = set()
@@ -57,7 +53,7 @@ class Scheduler(Collection[Job[object]]):
         self._failed_tasks: asyncio.Queue[Optional[asyncio.Task[object]]] = (
             asyncio.Queue()
         )
-        self._failed_task: Optional["asyncio.Task[None]"] = None
+        self._failed_task: Optional[asyncio.Task[None]] = None
         if sys.version_info < (3, 10):
             self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
