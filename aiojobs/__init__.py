@@ -19,14 +19,13 @@ async def create_scheduler(
     close_timeout: Optional[float] = 0.1,
     limit: Optional[int] = 100,
     pending_limit: int = 10000,
-    exception_handler: Optional[ExceptionHandler] = None
+    exception_handler: Optional[ExceptionHandler] = None,
 ) -> Scheduler:
     warnings.warn("Scheduler can now be instantiated directly.", DeprecationWarning)
 
     if exception_handler is not None and not callable(exception_handler):
         raise TypeError(
-            "A callable object or None is expected, "
-            "got {!r}".format(exception_handler)
+            f"A callable object or None is expected, got {exception_handler!r}"
         )
     return Scheduler(
         close_timeout=close_timeout,

@@ -1,13 +1,17 @@
 import asyncio
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict
+from collections.abc import AsyncIterator, Awaitable
+from typing import Any, Callable, Dict
 
 import pytest
 
 from aiojobs import Scheduler
 
-PARAMS: Dict[str, Any] = dict(
-    close_timeout=1.0, limit=100, pending_limit=0, exception_handler=None
-)
+PARAMS: Dict[str, Any] = {
+    "close_timeout": 1.0,
+    "limit": 100,
+    "pending_limit": 0,
+    "exception_handler": None,
+}
 
 
 @pytest.fixture
