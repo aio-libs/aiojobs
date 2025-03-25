@@ -81,9 +81,6 @@ class Job(Generic[_T]):
             return await self._task
 
     async def _wait(self, *, timeout: Optional[float] = None) -> _T:
-        if self._closed:
-            assert self._task is not None  # Task must have been created if closed.
-            return await self._task
         assert self._scheduler is not None  # Only removed when not _closed.
         scheduler = self._scheduler
         try:
@@ -96,15 +93,18 @@ class Job(Generic[_T]):
             raise
 
     async def wait(self, *, timeout: Optional[float] = None) -> _T:
+        if self._closed:
+            assert self._task is not None  # Task must have been created if closed.
+            return await self._task
         self._explicit = True
         return await self._wait(timeout=timeout)
 
     async def close(self, *, timeout: Optional[float] = None) -> None:
         if self._closed:
             return
-        assert self._scheduler is not None  # Only removed when not _closed.
         self._explicit = True
         if timeout is None:
+            assert self._scheduler is not None  # Only removed when not _closed.
             timeout = self._scheduler.close_timeout
         await self._close(timeout)
 
