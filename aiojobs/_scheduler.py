@@ -179,7 +179,7 @@ class Scheduler(Collection[Job[object]]):
             async with asyncio_timeout(timeout):
                 while self._jobs or self._shields:
                     gather = asyncio.gather(
-                        *(job.wait() for job in self._jobs),
+                        *(job._wait() for job in self._jobs),
                         *self._shields,
                         return_exceptions=True,
                     )
