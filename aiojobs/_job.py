@@ -80,12 +80,8 @@ class Job(Generic[_T]):
             assert self._task is not None  # Task should have been created before this.
             return await self._task
 
-    async def wait(self, *, timeout: Optional[float] = None) -> _T:
-        if self._closed:
-            assert self._task is not None  # Task must have been created if closed.
-            return await self._task
+    async def _wait(self, *, timeout: Optional[float] = None) -> _T:
         assert self._scheduler is not None  # Only removed when not _closed.
-        self._explicit = True
         scheduler = self._scheduler
         try:
             return await asyncio.shield(self._do_wait(timeout))
@@ -96,12 +92,19 @@ class Job(Generic[_T]):
             await self._close(scheduler.close_timeout)
             raise
 
+    async def wait(self, *, timeout: Optional[float] = None) -> _T:
+        if self._closed:
+            assert self._task is not None  # Task must have been created if closed.
+            return await self._task
+        self._explicit = True
+        return await self._wait(timeout=timeout)
+
     async def close(self, *, timeout: Optional[float] = None) -> None:
         if self._closed:
             return
-        assert self._scheduler is not None  # Only removed when not _closed.
         self._explicit = True
         if timeout is None:
+            assert self._scheduler is not None  # Only removed when not _closed.
             timeout = self._scheduler.close_timeout
         await self._close(timeout)
 
