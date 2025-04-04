@@ -639,6 +639,29 @@ async def test_wait_and_close_spawn(scheduler: Scheduler) -> None:
     assert another_spawned and another_done  # type: ignore[unreachable]
 
 
+@pytest.mark.xfail
+async def test_wait_and_close_exception(make_scheduler: _MakeScheduler) -> None:
+    exc_handler = mock.Mock()
+    scheduler = await make_scheduler(exception_handler=exc_handler)
+    exc = RuntimeError()
+
+    async def coro() -> NoReturn:
+        await asyncio.sleep(0)
+        raise exc
+
+    await scheduler.spawn(coro())
+    assert len(scheduler) == 1
+
+    await scheduler.wait_and_close()
+
+    assert len(scheduler) == 0
+
+    expect = {"exception": exc, "job": mock.ANY, "message": "Job processing failed"}
+    if asyncio.get_running_loop().get_debug():
+        expect["source_traceback"] = mock.ANY
+    exc_handler.assert_called_with(scheduler, expect)
+
+
 @pytest.mark.skipif(sys.version_info >= (3, 10), reason="Requires Python<3.10")
 def test_scheduler_must_be_created_within_running_loop() -> None:
     with pytest.raises(RuntimeError) as exc_info:
