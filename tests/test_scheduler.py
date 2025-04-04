@@ -639,7 +639,6 @@ async def test_wait_and_close_spawn(scheduler: Scheduler) -> None:
     assert another_spawned and another_done  # type: ignore[unreachable]
 
 
-@pytest.mark.xfail
 async def test_wait_and_close_exception(make_scheduler: _MakeScheduler) -> None:
     exc_handler = mock.Mock()
     scheduler = await make_scheduler(exception_handler=exc_handler)
