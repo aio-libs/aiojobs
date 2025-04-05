@@ -14,6 +14,13 @@ Changelog
 
 .. towncrier release notes start
 
+1.4.0 (2025-04-05)
+==================
+
+- Allowed scheduler creation without a running event loop.
+- Fixed exceptions being incorrectly suppressed in ``Scheduler.wait_and_close()``.
+- Added type annotations to functions and methods in API documentation.
+
 1.3.0 (2024-07-24)
 ==================
 
