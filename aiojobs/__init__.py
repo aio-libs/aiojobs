@@ -11,7 +11,7 @@ from typing import Optional
 from ._job import Job
 from ._scheduler import ExceptionHandler, Scheduler
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 
 async def create_scheduler(

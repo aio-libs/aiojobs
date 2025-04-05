@@ -1,1 +1,0 @@
-Reformat the source to remove obsolete syntax; now it is python 3.9+ compatible.
