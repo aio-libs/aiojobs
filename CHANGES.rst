@@ -17,7 +17,7 @@ Changelog
 1.4.0 (2025-04-05)
 ==================
 
-- Allowed the scheduler creation without a running event loop.
+- Allowed scheduler creation without a running event loop.
 - Fixed exceptions being incorrectly suppressed in ``Scheduler.wait_and_close()``.
 - Added type annotations to functions and methods in API documentation.
 
