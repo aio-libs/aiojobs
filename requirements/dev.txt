@@ -1,4 +1,4 @@
 -r ci.txt
 -r doc.txt
 pre-commit==4.3.0
-pytest-sugar==1.0.0
+pytest-sugar==1.1.0
