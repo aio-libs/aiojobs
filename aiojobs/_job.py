@@ -18,6 +18,17 @@ _T = TypeVar("_T", covariant=True)
 
 
 class Job(Generic[_T]):
+    __slots__ = (
+        "_coro",
+        "_scheduler",
+        "_name",
+        "_started",
+        "_closed",
+        "_explicit",
+        "_task",
+        "_source_traceback",
+    )
+
     def __init__(
         self,
         coro: Coroutine[object, object, _T],

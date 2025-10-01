@@ -30,6 +30,20 @@ ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
 
 
 class Scheduler(Collection[Job[object]]):
+
+    __slots__ = (
+        "_jobs",
+        "_shields",
+        "_close_timeout",
+        "_wait_timeout",
+        "_limit",
+        "_exception_handler",
+        "_failed_tasks",
+        "_failed_task",
+        "_pending",
+        "_closed",
+    )
+
     def __init__(
         self,
         *,
