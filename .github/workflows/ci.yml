@@ -18,7 +18,7 @@ jobs:
       - name: Checkhout
         uses: actions/checkout@v5
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.13
       - uses: actions/cache@v4
@@ -38,7 +38,7 @@ jobs:
       - name: Checkhout
         uses: actions/checkout@v5
       - name: Setup Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.13
       - uses: actions/cache@v4
@@ -66,7 +66,7 @@ jobs:
       - name: Checkhout
         uses: actions/checkout@v5
       - name: Setup Python ${{ matrix.pyver }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.pyver }}
           allow-prereleases: true
@@ -111,7 +111,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.13
     - name: Install dependencies
