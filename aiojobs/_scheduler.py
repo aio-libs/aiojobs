@@ -10,6 +10,7 @@ from typing import (
     Optional,
     Set,
     Type,
+    TypedDict,
     TypeVar,
     Union,
 )
@@ -24,9 +25,22 @@ else:
 
     Self = TypeVar("Self", bound="Scheduler")
 
+class ExceptionHandlerDict(TypedDict, total=False):
+    message:str
+    job: Job
+    exception: Exception
+    source_traceback: TracebackType
+
+#      * *message*: error message, :class:`str` 
+#  * *job*: failed job, :class:`Job` instance 
+#  * *exception*: caught exception, :exc:`Exception` instance 
+#  * *source_traceback*: a traceback at the moment of job creation 
+#    (present only for debug event loops, see also 
+#    :envvar:`PYTHONASYNCIODEBUG`). 
+
 _T = TypeVar("_T")
 _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
-ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
+ExceptionHandler = Callable[["Scheduler", ExceptionHandlerDict], None]
 
 
 class Scheduler(Collection[Job[object]]):
@@ -225,7 +239,7 @@ class Scheduler(Collection[Job[object]]):
             self._failed_tasks.put_nowait(None)
             await self._failed_task
 
-    def call_exception_handler(self, context: Dict[str, Any]) -> None:
+    def call_exception_handler(self, context: Union[ExceptionHandlerDict, Dict[str, Any]]) -> None:
         if self._exception_handler is None:
             asyncio.get_running_loop().call_exception_handler(context)
         else:
