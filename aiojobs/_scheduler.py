@@ -33,13 +33,6 @@ class ExceptionHandlerDict(TypedDict, total=False):
     source_traceback: TracebackType
 
 
-#      * *message*: error message, :class:`str`
-#  * *job*: failed job, :class:`Job` instance
-#  * *exception*: caught exception, :exc:`Exception` instance
-#  * *source_traceback*: a traceback at the moment of job creation
-#    (present only for debug event loops, see also
-#    :envvar:`PYTHONASYNCIODEBUG`).
-
 _T = TypeVar("_T")
 _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
 ExceptionHandler = Callable[["Scheduler", ExceptionHandlerDict], None]
