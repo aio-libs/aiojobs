@@ -242,7 +242,7 @@ class Scheduler(Collection[Job[object]]):
             await self._failed_task
 
     def call_exception_handler(
-        self, context: Union[ExceptionHandlerDict, Dict[str, Any]]
+        self, context: ExceptionHandlerDict
     ) -> None:
         if self._exception_handler is None:
             asyncio.get_running_loop().call_exception_handler(context)
