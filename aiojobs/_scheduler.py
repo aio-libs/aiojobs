@@ -42,9 +42,7 @@ class ExceptionHandlerDict(TypedDict, total=False):
 
 _T = TypeVar("_T")
 _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
-ExceptionHandler = Callable[
-    ["Scheduler", ExceptionHandlerDict], None
-]
+ExceptionHandler = Callable[["Scheduler", ExceptionHandlerDict], None]
 
 
 class Scheduler(Collection[Job[object]]):
