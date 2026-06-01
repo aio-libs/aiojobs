@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkhout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
           python-version: 3.13
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-3.13-${{ hashFiles('requirements/*.txt') }}
@@ -36,12 +36,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkhout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Python 3.13
         uses: actions/setup-python@v6
         with:
           python-version: 3.13
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-3.9-${{ hashFiles('requirements/*.txt') }}
@@ -64,7 +64,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     steps:
       - name: Checkhout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Python ${{ matrix.pyver }}
         uses: actions/setup-python@v6
         with:
@@ -86,7 +86,7 @@ jobs:
           pytest tests
           python -m coverage xml
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -109,7 +109,7 @@ jobs:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
