@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 

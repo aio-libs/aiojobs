@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from collections.abc import Awaitable, Callable
-from typing import List, NoReturn
+from typing import NoReturn
 from unittest import mock
 
 import pytest
