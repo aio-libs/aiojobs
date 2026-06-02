@@ -1,18 +1,14 @@
+from __future__ import annotations
+
 import asyncio
 import sys
-from collections.abc import Awaitable, Collection, Coroutine, Iterator
+from collections.abc import Awaitable, Callable, Collection, Coroutine, Iterator
 from contextlib import suppress
 from types import TracebackType
 from typing import (
     Any,
-    Dict,
-    Optional,
-    Set,
-    Type,
     TypeVar,
-    Union,
 )
-from collections.abc import Callable
 
 from ._job import Job
 
@@ -25,7 +21,7 @@ else:
     Self = TypeVar("Self", bound="Scheduler")
 
 _T = TypeVar("_T")
-_FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
+_FutureLike = asyncio.Future[_T] | Awaitable[_T]
 ExceptionHandler = Callable[["Scheduler", dict[str, Any]], None]
 
 
@@ -64,9 +60,7 @@ class Scheduler(Collection[Job[object]]):
         self._wait_timeout = wait_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_tasks: asyncio.Queue[asyncio.Task[object] | None] = (
-            asyncio.Queue()
-        )
+        self._failed_tasks: asyncio.Queue[asyncio.Task[object] | None] = asyncio.Queue()
         self._failed_task: asyncio.Task[None] | None = None
         if sys.version_info < (3, 10):
             self._failed_task = asyncio.create_task(self._wait_failed())
@@ -150,7 +144,7 @@ class Scheduler(Collection[Job[object]]):
         self._jobs.add(job)
         return job
 
-    def shield(self, arg: _FutureLike[_T]) -> "asyncio.Future[_T]":
+    def shield(self, arg: _FutureLike[_T]) -> asyncio.Future[_T]:
         inner = asyncio.ensure_future(arg)
         if inner.done():
             return inner
@@ -163,7 +157,7 @@ class Scheduler(Collection[Job[object]]):
         loop = inner.get_loop()
         outer = loop.create_future()
 
-        def _inner_done_callback(inner: "asyncio.Task[object]") -> None:
+        def _inner_done_callback(inner: asyncio.Task[object]) -> None:
             if outer.cancelled():
                 if not inner.cancelled():
                     inner.exception()
@@ -178,7 +172,7 @@ class Scheduler(Collection[Job[object]]):
                 else:
                     outer.set_result(inner.result())
 
-        def _outer_done_callback(outer: "asyncio.Future[object]") -> None:
+        def _outer_done_callback(outer: asyncio.Future[object]) -> None:
             if not inner.done():
                 inner.remove_done_callback(_inner_done_callback)
 
