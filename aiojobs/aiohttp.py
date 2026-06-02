@@ -17,7 +17,7 @@ __all__ = ("setup", "spawn", "get_scheduler", "get_scheduler_from_app", "atomic"
 
 _T = TypeVar("_T")
 _FutureLike = asyncio.Future[_T] | Awaitable[_T]
-_RequestView = TypeVar("_RequestView", web.Request, web.View)
+_RequestView = TypeVar("_RequestView", bound=web.Request | web.View)
 
 
 AIOJOBS_SCHEDULER = web.AppKey("AIOJOBS_SCHEDULER", Scheduler)
