@@ -5,7 +5,6 @@ from contextlib import suppress
 from types import TracebackType
 from typing import (
     Any,
-    Callable,
     Dict,
     Optional,
     Set,
@@ -13,6 +12,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from collections.abc import Callable
 
 from ._job import Job
 
@@ -26,7 +26,7 @@ else:
 
 _T = TypeVar("_T")
 _FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
-ExceptionHandler = Callable[["Scheduler", Dict[str, Any]], None]
+ExceptionHandler = Callable[["Scheduler", dict[str, Any]], None]
 
 
 class Scheduler(Collection[Job[object]]):
@@ -47,27 +47,27 @@ class Scheduler(Collection[Job[object]]):
     def __init__(
         self,
         *,
-        close_timeout: Optional[float] = 0.1,
-        wait_timeout: Optional[float] = 60,
-        limit: Optional[int] = 100,
+        close_timeout: float | None = 0.1,
+        wait_timeout: float | None = 60,
+        limit: int | None = 100,
         pending_limit: int = 10000,
-        exception_handler: Optional[ExceptionHandler] = None,
+        exception_handler: ExceptionHandler | None = None,
     ):
         if exception_handler is not None and not callable(exception_handler):
             raise TypeError(
                 f"A callable object or None is expected, got {exception_handler!r}"
             )
 
-        self._jobs: Set[Job[object]] = set()
-        self._shields: Set[asyncio.Task[object]] = set()
+        self._jobs: set[Job[object]] = set()
+        self._shields: set[asyncio.Task[object]] = set()
         self._close_timeout = close_timeout
         self._wait_timeout = wait_timeout
         self._limit = limit
         self._exception_handler = exception_handler
-        self._failed_tasks: asyncio.Queue[Optional[asyncio.Task[object]]] = (
+        self._failed_tasks: asyncio.Queue[asyncio.Task[object] | None] = (
             asyncio.Queue()
         )
-        self._failed_task: Optional[asyncio.Task[None]] = None
+        self._failed_task: asyncio.Task[None] | None = None
         if sys.version_info < (3, 10):
             self._failed_task = asyncio.create_task(self._wait_failed())
         self._pending: asyncio.Queue[Job[object]] = asyncio.Queue(maxsize=pending_limit)
@@ -96,14 +96,14 @@ class Scheduler(Collection[Job[object]]):
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         await self.wait_and_close()
 
     @property
-    def limit(self) -> Optional[int]:
+    def limit(self) -> int | None:
         return self._limit
 
     @property
@@ -111,7 +111,7 @@ class Scheduler(Collection[Job[object]]):
         return self._pending.maxsize
 
     @property
-    def close_timeout(self) -> Optional[float]:
+    def close_timeout(self) -> float | None:
         return self._close_timeout
 
     @property
@@ -127,7 +127,7 @@ class Scheduler(Collection[Job[object]]):
         return self._closed
 
     async def spawn(
-        self, coro: Coroutine[object, object, _T], name: Optional[str] = None
+        self, coro: Coroutine[object, object, _T], name: str | None = None
     ) -> Job[_T]:
         if self._closed:
             raise RuntimeError("Scheduling a new job after closing")
@@ -186,7 +186,7 @@ class Scheduler(Collection[Job[object]]):
         outer.add_done_callback(_outer_done_callback)
         return outer
 
-    async def wait_and_close(self, timeout: Optional[float] = None) -> None:
+    async def wait_and_close(self, timeout: float | None = None) -> None:
         if timeout is None:
             timeout = self._wait_timeout
         with suppress(asyncio.TimeoutError):
@@ -225,14 +225,14 @@ class Scheduler(Collection[Job[object]]):
             self._failed_tasks.put_nowait(None)
             await self._failed_task
 
-    def call_exception_handler(self, context: Dict[str, Any]) -> None:
+    def call_exception_handler(self, context: dict[str, Any]) -> None:
         if self._exception_handler is None:
             asyncio.get_running_loop().call_exception_handler(context)
         else:
             self._exception_handler(self, context)
 
     @property
-    def exception_handler(self) -> Optional[ExceptionHandler]:
+    def exception_handler(self) -> ExceptionHandler | None:
         return self._exception_handler
 
     def _done(self, job: Job[object]) -> None:

@@ -3,11 +3,11 @@ from collections.abc import AsyncIterator, Awaitable, Coroutine
 from functools import wraps
 from typing import (
     Any,
-    Callable,
     Optional,
     TypeVar,
     Union,
 )
+from collections.abc import Callable
 
 from aiohttp import web
 
@@ -31,11 +31,11 @@ def get_scheduler(request: web.Request) -> Scheduler:
     return scheduler
 
 
-def get_scheduler_from_app(app: web.Application) -> Optional[Scheduler]:
+def get_scheduler_from_app(app: web.Application) -> Scheduler | None:
     return app.get(AIOJOBS_SCHEDULER)
 
 
-def get_scheduler_from_request(request: web.Request) -> Optional[Scheduler]:
+def get_scheduler_from_request(request: web.Request) -> Scheduler | None:
     return request.config_dict.get(AIOJOBS_SCHEDULER)
 
 

@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import Awaitable
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 from aiohttp import ClientSession, web
