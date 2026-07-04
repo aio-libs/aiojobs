@@ -272,6 +272,65 @@ async def test_job_close_cancelled_from_outside(scheduler: Scheduler) -> None:
         await job.wait()
 
 
+async def test_job_close_cancelled_from_outside_completion_race(
+    scheduler: Scheduler,
+) -> None:
+    """The job task may finish in the same loop iteration the caller of
+    close() is cancelled in; the already scheduled completion callback
+    then finds the waiter cancelled and must leave it alone."""
+    cancel_seen = asyncio.Event()
+    unblock = asyncio.Event()
+
+    async def coro() -> None:
+        try:
+            await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            cancel_seen.set()
+            await unblock.wait()
+            raise
+
+    job = await scheduler.spawn(coro())
+    closer = asyncio.ensure_future(job.close())
+    await cancel_seen.wait()
+    # Unblock the job before cancelling the closer: the job task then
+    # completes and schedules its done callbacks before the closer wakes
+    # up and detaches them.
+    unblock.set()
+    closer.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await closer
+    assert closer.cancelled()
+    with suppress(asyncio.CancelledError):
+        await job.wait()
+
+
+async def test_job_close_timeout_source_traceback(
+    make_scheduler: _MakeScheduler,
+) -> None:
+    """In debug mode the close timeout report carries the source traceback."""
+    loop = asyncio.get_running_loop()
+    loop.set_debug(True)
+    try:
+        handler = mock.Mock()
+        scheduler = await make_scheduler(close_timeout=0.01, exception_handler=handler)
+
+        async def coro() -> None:
+            try:
+                await asyncio.sleep(60)
+            except asyncio.CancelledError:
+                await asyncio.sleep(60)
+
+        job = await scheduler.spawn(coro())
+        await scheduler.close()
+        assert job.closed
+        assert handler.called
+        context = handler.call_args[0][1]
+        assert context["message"] == "Job closing timed out"
+        assert "source_traceback" in context
+    finally:
+        loop.set_debug(False)
+
+
 async def test_job_await_closed(scheduler: Scheduler) -> None:
     async def coro() -> int:
         return 5
