@@ -1,0 +1,1 @@
+Fixed ``Job.close()`` and ``Job.wait()`` swallowing an external cancellation of the task calling them; awaiting the job's task no longer conflates the job's own cancellation with a cancellation aimed at the caller.

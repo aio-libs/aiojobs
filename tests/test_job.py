@@ -239,6 +239,39 @@ async def test_job_close_closed(make_scheduler: _MakeScheduler) -> None:
     await job.close()
 
 
+async def test_job_close_cancelled_from_outside(scheduler: Scheduler) -> None:
+    """An external cancellation of the task running close() must propagate.
+
+    The CancelledError raised by awaiting the job's cancelled task is
+    expected and swallowed, but a cancellation aimed at the caller of
+    close() itself is not ours to swallow.
+    """
+    cancel_seen = asyncio.Event()
+    unblock = asyncio.Event()
+
+    async def coro() -> None:
+        try:
+            await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            cancel_seen.set()
+            await unblock.wait()
+            raise
+
+    job = await scheduler.spawn(coro())
+    closer = asyncio.ensure_future(job.close())
+    # Once the job saw the cancellation, close() is suspended awaiting
+    # the job task, which is blocked until unblock is set.
+    await cancel_seen.wait()
+    closer.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await closer
+    assert closer.cancelled()
+
+    unblock.set()
+    with suppress(asyncio.CancelledError):
+        await job.wait()
+
+
 async def test_job_await_closed(scheduler: Scheduler) -> None:
     async def coro() -> int:
         return 5
