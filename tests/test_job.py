@@ -263,8 +263,7 @@ async def test_job_close_cancelled_from_outside(scheduler: Scheduler) -> None:
     # the job task, which is blocked until unblock is set.
     await cancel_seen.wait()
     closer.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await closer
+    await asyncio.wait({closer})
     assert closer.cancelled()
 
     unblock.set()
@@ -297,8 +296,7 @@ async def test_job_close_cancelled_from_outside_completion_race(
     # up and detaches them.
     unblock.set()
     closer.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await closer
+    await asyncio.wait({closer})
     assert closer.cancelled()
     with suppress(asyncio.CancelledError):
         await job.wait()
