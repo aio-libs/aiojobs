@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import sys
 import traceback
 from collections.abc import Coroutine
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 if sys.version_info >= (3, 11):
     from asyncio import timeout as asyncio_timeout
@@ -33,17 +35,17 @@ class Job(Generic[_T]):
         self,
         coro: Coroutine[object, object, _T],
         scheduler: Scheduler,
-        name: Optional[str] = None,
+        name: str | None = None,
     ):
         self._coro = coro
-        self._scheduler: Optional[Scheduler] = scheduler
+        self._scheduler: Scheduler | None = scheduler
         self._name = name
         loop = asyncio.get_running_loop()
         self._started = loop.create_future()
 
         self._closed = False
         self._explicit = False
-        self._task: Optional[asyncio.Task[_T]] = None
+        self._task: asyncio.Task[_T] | None = None
 
         tb = traceback.extract_stack(sys._getframe(2)) if loop.get_debug() else None
         self._source_traceback = tb
@@ -71,7 +73,7 @@ class Job(Generic[_T]):
     def closed(self) -> bool:
         return self._closed
 
-    def get_name(self) -> Optional[str]:
+    def get_name(self) -> str | None:
         """Get the task name.
 
         See https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.get_name.
@@ -84,14 +86,14 @@ class Job(Generic[_T]):
         if self._task is not None:
             self._task.set_name(name)
 
-    async def _do_wait(self, timeout: Optional[float]) -> _T:
+    async def _do_wait(self, timeout: float | None) -> _T:
         async with asyncio_timeout(timeout):
             # TODO: add a test for waiting for a pending coro
             await self._started
             assert self._task is not None  # Task should have been created before this.
             return await self._task
 
-    async def _wait(self, *, timeout: Optional[float] = None) -> _T:
+    async def _wait(self, *, timeout: float | None = None) -> _T:
         assert self._scheduler is not None  # Only removed when not _closed.
         scheduler = self._scheduler
         try:
@@ -103,14 +105,14 @@ class Job(Generic[_T]):
             await self._close(scheduler.close_timeout)
             raise
 
-    async def wait(self, *, timeout: Optional[float] = None) -> _T:
+    async def wait(self, *, timeout: float | None = None) -> _T:
         if self._closed:
             assert self._task is not None  # Task must have been created if closed.
             return await self._task
         self._explicit = True
         return await self._wait(timeout=timeout)
 
-    async def close(self, *, timeout: Optional[float] = None) -> None:
+    async def close(self, *, timeout: float | None = None) -> None:
         if self._closed:
             return
         self._explicit = True
@@ -119,7 +121,7 @@ class Job(Generic[_T]):
             timeout = self._scheduler.close_timeout
         await self._close(timeout)
 
-    async def _close(self, timeout: Optional[float]) -> None:
+    async def _close(self, timeout: float | None) -> None:
         self._closed = True
         if self._task is None:
             # the task is closed immediately without actual execution
@@ -178,7 +180,7 @@ class Job(Generic[_T]):
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
-    def _done_callback(self, task: "asyncio.Task[_T]") -> None:
+    def _done_callback(self, task: asyncio.Task[_T]) -> None:
         assert self._scheduler is not None
         scheduler = self._scheduler
         scheduler._done(self)
