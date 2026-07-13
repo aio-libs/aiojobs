@@ -132,9 +132,28 @@ class Job(Generic[_T]):
         scheduler = self._scheduler
         try:
             async with asyncio_timeout(timeout):
-                await self._task
+                if sys.version_info >= (3, 11):
+                    await self._task
+                else:
+                    # Cancelling the current task would be forwarded to
+                    # self._task through _fut_waiter, making the two
+                    # cancellation sources indistinguishable; shield the
+                    # job so an external cancellation leaves it running
+                    # and detectable below.
+                    await asyncio.shield(self._task)
         except asyncio.CancelledError:
-            pass
+            # Either the cancelled job finished or the task running
+            # close() was itself cancelled; re-raise in the second case
+            # so callers stay cancellable.
+            if sys.version_info >= (3, 11):
+                ctask = asyncio.current_task()
+                assert ctask is not None
+                if ctask.cancelling() > 0:
+                    raise
+            elif not self._task.done():
+                # The job is still running, so the CancelledError cannot
+                # have come from awaiting it.
+                raise
         except asyncio.TimeoutError as exc:
             if self._explicit:
                 raise
