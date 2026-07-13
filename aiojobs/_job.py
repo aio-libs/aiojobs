@@ -130,25 +130,29 @@ class Job(Generic[_T]):
         self._task.cancel()
         # self._scheduler is None after _done_callback()
         scheduler = self._scheduler
-        # Wait for the task through an intermediate future instead of
-        # awaiting it directly: awaiting the task would deliver
-        # CancelledError both when the cancelled task finishes and when
-        # the current task is cancelled from the outside (cancelling a
-        # task that is awaiting another task also cancels the awaited
-        # task, so the task state does not tell the two apart).  The
-        # waiter is only ever cancelled by a cancellation aimed at the
-        # current task, which must keep propagating so that callers of
-        # close()/wait() stay cancellable.
-        waiter: "asyncio.Future[None]" = asyncio.get_running_loop().create_future()
-
-        def _on_completion(task: "asyncio.Task[_T]") -> None:
-            if not waiter.cancelled():
-                waiter.set_result(None)
-
-        self._task.add_done_callback(_on_completion)
         try:
             async with asyncio_timeout(timeout):
-                await waiter
+                if sys.version_info >= (3, 11):
+                    await self._task
+                else:
+                    # Cancelling the current task would be forwarded to
+                    # self._task through _fut_waiter, making the two
+                    # cancellation sources indistinguishable; shield the
+                    # job so an external cancellation leaves it running
+                    # and detectable below.
+                    await asyncio.shield(self._task)
+        except asyncio.CancelledError:
+            # Either the cancelled job finished or the task running
+            # close() was itself cancelled; re-raise in the second case
+            # so callers stay cancellable.
+            if sys.version_info >= (3, 11):
+                ctask = asyncio.current_task()
+                if ctask is not None and ctask.cancelling():
+                    raise
+            elif not self._task.done():
+                # The job is still running, so the CancelledError cannot
+                # have come from awaiting it.
+                raise
         except asyncio.TimeoutError as exc:
             if self._explicit:
                 raise
@@ -163,14 +167,9 @@ class Job(Generic[_T]):
             # there's no timeout. self._scheduler will now be None though.
             assert scheduler is not None
             scheduler.call_exception_handler(context)
-            return
-        finally:
-            self._task.remove_done_callback(_on_completion)
-        if self._task.cancelled():
-            return
-        exc2 = self._task.exception()
-        if exc2 is not None and (self._explicit or not isinstance(exc2, Exception)):
-            raise exc2
+        except Exception:
+            if self._explicit:
+                raise
 
     def _start(self) -> None:
         assert self._task is None

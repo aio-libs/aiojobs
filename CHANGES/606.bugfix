@@ -1,1 +1,1 @@
-Fixed ``Job.close()`` and ``Job.wait()`` swallowing an external cancellation of the task calling them; awaiting the job's task no longer conflates the job's own cancellation with a cancellation aimed at the caller.
+Fixed ``Job.close()`` and ``Job.wait()`` swallowing an external cancellation of the calling task (exact on Python 3.11+ via ``Task.cancelling()``; on older versions the cancellation propagates whenever the job is still running).

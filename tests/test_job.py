@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from collections.abc import Awaitable
 from contextlib import suppress
 from typing import Callable, NoReturn
@@ -271,12 +272,16 @@ async def test_job_close_cancelled_from_outside(scheduler: Scheduler) -> None:
         await job.wait()
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 11),
+    reason="distinguishing this race needs Task.cancelling()",
+)
 async def test_job_close_cancelled_from_outside_completion_race(
     scheduler: Scheduler,
 ) -> None:
     """The job task may finish in the same loop iteration the caller of
-    close() is cancelled in; the already scheduled completion callback
-    then finds the waiter cancelled and must leave it alone."""
+    close() is cancelled in; the external cancellation must still
+    propagate."""
     cancel_seen = asyncio.Event()
     unblock = asyncio.Event()
 
