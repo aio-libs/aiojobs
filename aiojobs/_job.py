@@ -147,7 +147,8 @@ class Job(Generic[_T]):
             # so callers stay cancellable.
             if sys.version_info >= (3, 11):
                 ctask = asyncio.current_task()
-                if ctask is not None and ctask.cancelling():
+                assert ctask is not None
+                if ctask.cancelling() > 0:
                     raise
             elif not self._task.done():
                 # The job is still running, so the CancelledError cannot
