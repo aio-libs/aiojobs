@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from collections.abc import Awaitable
-from typing import Callable, List, NoReturn
+from typing import Callable, List, NoReturn, Union
 from unittest import mock
 
 import pytest
@@ -554,6 +554,41 @@ async def test_wait_and_close(scheduler: Scheduler) -> None:
     assert inner_done and outer_done  # type: ignore[unreachable]
     assert len(scheduler._shields) == 0  # type: ignore[unreachable]
     assert len(scheduler._jobs) == 0
+    assert scheduler.closed
+
+
+async def test_wait_and_close_yields_for_finished_shield(
+    scheduler: Scheduler, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    event = asyncio.Event()
+
+    async def inner() -> None:
+        event.set()
+
+    outer = scheduler.shield(inner())
+    await event.wait()
+    assert len(scheduler._shields) == 1
+
+    original_gather = asyncio.gather
+    gather_calls = 0
+
+    def gather_once(
+        *aws: Awaitable[object], return_exceptions: bool = False
+    ) -> asyncio.Future[List[Union[object, BaseException]]]:
+        nonlocal gather_calls
+        gather_calls += 1
+        if gather_calls > 1:
+            raise RuntimeError("wait_and_close did not yield to done callbacks")
+        return original_gather(*aws, return_exceptions=return_exceptions)
+
+    monkeypatch.setattr(asyncio, "gather", gather_once)
+    try:
+        await scheduler.wait_and_close()
+    finally:
+        monkeypatch.setattr(asyncio, "gather", original_gather)
+
+    assert gather_calls == 1
+    assert outer.done()
     assert scheduler.closed
 
 
