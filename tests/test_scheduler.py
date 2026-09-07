@@ -569,23 +569,25 @@ async def test_wait_and_close_yields_for_finished_shield(
     await event.wait()
     assert len(scheduler._shields) == 1
 
-    original_gather = asyncio.gather
     gather_calls = 0
 
-    def gather_once(
-        *aws: Awaitable[object], return_exceptions: bool = False
+    def synchronously_completed_gather(
+        *aws: asyncio.Future[object], return_exceptions: bool = False
     ) -> asyncio.Future[List[Union[object, BaseException]]]:
         nonlocal gather_calls
         gather_calls += 1
         if gather_calls > 1:
             raise RuntimeError("wait_and_close did not yield to done callbacks")
-        return original_gather(*aws, return_exceptions=return_exceptions)
+        assert return_exceptions
+        assert all(aw.done() for aw in aws)
+        result: asyncio.Future[List[Union[object, BaseException]]] = (
+            asyncio.get_running_loop().create_future()
+        )
+        result.set_result([aw.result() for aw in aws])
+        return result
 
-    monkeypatch.setattr(asyncio, "gather", gather_once)
-    try:
-        await scheduler.wait_and_close()
-    finally:
-        monkeypatch.setattr(asyncio, "gather", original_gather)
+    monkeypatch.setattr(asyncio, "gather", synchronously_completed_gather)
+    await scheduler.wait_and_close()
 
     assert gather_calls == 1
     assert outer.done()
