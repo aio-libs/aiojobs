@@ -1,12 +1,11 @@
+from __future__ import annotations
+
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Coroutine
+from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine
 from functools import wraps
 from typing import (
     Any,
-    Callable,
-    Optional,
     TypeVar,
-    Union,
 )
 
 from aiohttp import web
@@ -17,8 +16,8 @@ from ._scheduler import Scheduler
 __all__ = ("setup", "spawn", "get_scheduler", "get_scheduler_from_app", "atomic")
 
 _T = TypeVar("_T")
-_FutureLike = Union["asyncio.Future[_T]", Awaitable[_T]]
-_RequestView = TypeVar("_RequestView", bound=Union[web.Request, web.View])
+_FutureLike = asyncio.Future[_T] | Awaitable[_T]
+_RequestView = TypeVar("_RequestView", bound=web.Request | web.View)
 
 
 AIOJOBS_SCHEDULER = web.AppKey("AIOJOBS_SCHEDULER", Scheduler)
@@ -31,11 +30,11 @@ def get_scheduler(request: web.Request) -> Scheduler:
     return scheduler
 
 
-def get_scheduler_from_app(app: web.Application) -> Optional[Scheduler]:
+def get_scheduler_from_app(app: web.Application) -> Scheduler | None:
     return app.get(AIOJOBS_SCHEDULER)
 
 
-def get_scheduler_from_request(request: web.Request) -> Optional[Scheduler]:
+def get_scheduler_from_request(request: web.Request) -> Scheduler | None:
     return request.config_dict.get(AIOJOBS_SCHEDULER)
 
 
@@ -43,7 +42,7 @@ async def spawn(request: web.Request, coro: Coroutine[object, object, _T]) -> Jo
     return await get_scheduler(request).spawn(coro)
 
 
-def shield(request: web.Request, arg: _FutureLike[_T]) -> "asyncio.Future[_T]":
+def shield(request: web.Request, arg: _FutureLike[_T]) -> asyncio.Future[_T]:
     return get_scheduler(request).shield(arg)
 
 

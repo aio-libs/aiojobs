@@ -1,7 +1,7 @@
 import asyncio
 import sys
-from collections.abc import Awaitable
-from typing import Callable, List, NoReturn
+from collections.abc import Awaitable, Callable
+from typing import NoReturn
 from unittest import mock
 
 import pytest
@@ -366,7 +366,7 @@ async def test_scheduler_concurrency_pending_limit(
     async def coro(fut: "asyncio.Future[object]") -> None:
         await fut
 
-    futures: List[asyncio.Future[object]] = [asyncio.Future() for _ in range(3)]
+    futures: list[asyncio.Future[object]] = [asyncio.Future() for _ in range(3)]
     jobs = []
 
     async def spawn() -> None:

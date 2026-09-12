@@ -5,8 +5,9 @@ asyncio applications.
 
 """
 
+from __future__ import annotations
+
 import warnings
-from typing import Optional
 
 from ._job import Job
 from ._scheduler import ExceptionHandler, Scheduler
@@ -16,10 +17,10 @@ __version__ = "1.4.0"
 
 async def create_scheduler(
     *,
-    close_timeout: Optional[float] = 0.1,
-    limit: Optional[int] = 100,
+    close_timeout: float | None = 0.1,
+    limit: int | None = 100,
     pending_limit: int = 10000,
-    exception_handler: Optional[ExceptionHandler] = None,
+    exception_handler: ExceptionHandler | None = None,
 ) -> Scheduler:
     warnings.warn("Scheduler can now be instantiated directly.", DeprecationWarning)
 

@@ -2,7 +2,8 @@ import asyncio
 import sys
 from collections.abc import Awaitable
 from contextlib import suppress
-from typing import Callable, NoReturn
+from typing import NoReturn
+from collections.abc import Callable
 from unittest import mock
 
 import pytest
