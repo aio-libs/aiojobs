@@ -198,6 +198,7 @@ class Scheduler(Collection[Job[object]]):
                         return_exceptions=True,
                     )
                     await asyncio.shield(gather)
+                    await asyncio.sleep(0)
         await self.close()
 
     async def close(self) -> None:
