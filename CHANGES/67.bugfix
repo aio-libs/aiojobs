@@ -1,0 +1,1 @@
+Prevent timing out while waiting for a pending job from cancelling its startup future and raising InvalidStateError.
