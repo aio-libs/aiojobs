@@ -1,4 +1,5 @@
 import asyncio
+import contextvars
 import sys
 import traceback
 from collections.abc import Coroutine
@@ -20,6 +21,7 @@ _T = TypeVar("_T", covariant=True)
 class Job(Generic[_T]):
     __slots__ = (
         "_coro",
+        "_context",
         "_scheduler",
         "_name",
         "_started",
@@ -36,6 +38,7 @@ class Job(Generic[_T]):
         name: Optional[str] = None,
     ):
         self._coro = coro
+        self._context = contextvars.copy_context()
         self._scheduler: Optional[Scheduler] = scheduler
         self._name = name
         loop = asyncio.get_running_loop()
@@ -174,7 +177,15 @@ class Job(Generic[_T]):
 
     def _start(self) -> None:
         assert self._task is None
-        self._task = asyncio.create_task(self._coro, name=self._name)
+        loop = asyncio.get_running_loop()
+        if sys.version_info >= (3, 11) and loop.get_task_factory() is None:
+            self._task = loop.create_task(
+                self._coro, name=self._name, context=self._context
+            )
+        else:
+            self._task = self._context.run(
+                loop.create_task, self._coro, name=self._name
+            )
         self._task.add_done_callback(self._done_callback)
         self._started.set_result(None)
 
