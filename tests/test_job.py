@@ -410,3 +410,22 @@ async def test_set_job_name(scheduler: Scheduler) -> None:
     assert job.get_name() == "changed_name"
     assert job._task is not None
     assert job._task.get_name() == "changed_name"
+
+
+async def test_job_wait_timeout_while_pending(make_scheduler: _MakeScheduler) -> None:
+    scheduler = await make_scheduler(limit=1)
+    gate = asyncio.Event()
+
+    async def coro() -> None:
+        await gate.wait()
+
+    active = await scheduler.spawn(coro())
+    pending = await scheduler.spawn(coro())
+    assert pending.pending
+
+    with pytest.raises(asyncio.TimeoutError):
+        await pending.wait(timeout=0.01)
+
+    assert pending.closed
+    await active.close()
+    assert scheduler.pending_count == 0

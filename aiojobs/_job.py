@@ -86,8 +86,8 @@ class Job(Generic[_T]):
 
     async def _do_wait(self, timeout: Optional[float]) -> _T:
         async with asyncio_timeout(timeout):
-            # TODO: add a test for waiting for a pending coro
-            await self._started
+            # A wait timeout must not cancel the job's shared startup future.
+            await asyncio.shield(self._started)
             assert self._task is not None  # Task should have been created before this.
             return await self._task
 
