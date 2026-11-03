@@ -1,0 +1,2 @@
+Prevented ``Scheduler.wait_and_close()`` from livelocking when a shielded future
+had finished but its removal callback had not run yet.
